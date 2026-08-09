@@ -1,0 +1,10 @@
+.env
+venv/
+command.wav
+tts_test.wav
+__pycache__/
+voices/
+config/facts.json
+_test_stdout.log
+_test_stderr.log
+screenshots/

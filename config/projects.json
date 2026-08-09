@@ -1,0 +1,7 @@
+{
+  "semicolon": "A free learn-to-code site for a class 8 beginner, deployed at semicolon.punah.pro. Has Ada, a coding tutor chat widget (js/ada.js) that talks to ada_server.py, a local Python bridge to Ollama on port 8420 - Ada only answers while ada_server.py is running on this laptop.",
+  "astronomy-site": "A browser astronomy site 'Cosmos - Explore the Universe', deployed at cosmos.punah.pro. Has Beast, a chat widget (js/chat.js) that answers from the site's own real planet/constellation/moon-phase data first, can give a detailed answer about one specific field (distance, size, moons, day, year, temperature, gravity, type) when asked about it directly, can fetch NASA's live Astronomy Picture of the Day, and falls back to Ollama via beast_server.py (a local bridge on port 8422, same idea as Ada's) for open questions.",
+  "cosmos v2": "A server that remembers - a Node.js app with real accounts and a database, deployed at cosmos.punah.pro/back. Shipped serverless as a read-only API baked to static files since every route is a GET with no mutation.",
+  "jarvis": "Anshuman's own hands-free voice assistant (this project) - wake word 'Jarvis', Whisper for speech-to-text, Piper for text-to-speech, Ollama (llama3.2:3b) as its offline brain, plus DuckDuckGo/Wikipedia lookups for general knowledge questions.",
+  "jarvis orb": "A separate web-based JARVIS UI (holographic orb, hand-gesture control) rebranded from an open-source Next.js/Three.js project, with its own Python brain-bridge server (server.py) on port 8421."
+}

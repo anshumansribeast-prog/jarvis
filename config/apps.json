@@ -1,0 +1,44 @@
+{
+  "chrome": {
+    "launch": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+    "process_name": "chrome.exe"
+  },
+  "brave": {
+    "launch": "C:\\Program Files\\BraveSoftware\\Brave-Browser\\Application\\brave.exe",
+    "process_name": "brave.exe"
+  },
+  "vs code": {
+    "launch": "code",
+    "shell": true,
+    "process_name": "Code.exe"
+  },
+  "notepad": {
+    "launch": "notepad.exe",
+    "process_name": "notepad.exe"
+  },
+  "calculator": {
+    "launch": "calc.exe",
+    "process_name": "CalculatorApp.exe"
+  },
+  "file explorer": {
+    "launch": "explorer.exe",
+    "process_name": "explorer.exe"
+  },
+  "paint": {
+    "launch": "mspaint.exe",
+    "process_name": "mspaint.exe"
+  },
+  "settings": {
+    "launch": "start ms-settings:",
+    "shell": true,
+    "process_name": "SystemSettings.exe"
+  },
+  "task manager": {
+    "launch": "taskmgr.exe",
+    "process_name": "Taskmgr.exe"
+  },
+  "terminal": {
+    "launch": "wt.exe",
+    "process_name": "WindowsTerminal.exe"
+  }
+}

@@ -1,0 +1,6 @@
+sounddevice
+requests
+truststore
+numpy
+faster-whisper
+piper-tts
