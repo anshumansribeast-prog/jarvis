@@ -58,8 +58,12 @@ OLLAMA_SYSTEM_PROMPT = (
 SILENCE_RMS_THRESHOLD = 150
 
 SITES = {
-    "semicolon": "https://semicolon-anshu.netlify.app",
-    "cosmos": "https://cosmos-anshu.netlify.app",
+    # Real custom domains, not the old netlify.app mirrors — one of
+    # those (semicolon-anshu.netlify.app) was deleted outright, and
+    # cosmos.punah.pro is the actual live site now, not its netlify copy.
+    "semicolon": "https://semicolon.punah.pro",
+    "cosmos": "https://cosmos.punah.pro",
+    "backend": "https://cosmos.punah.pro/backend.html",
     "music": "https://music.youtube.com",
 }
 
@@ -418,6 +422,10 @@ def handle_command(text):
     elif "open cosmos" in text:
         speak("Opening Cosmos.")
         webbrowser.open(SITES["cosmos"])
+
+    elif "open backend" in text or "open the backend" in text:
+        speak("Opening the backend.")
+        webbrowser.open(SITES["backend"])
 
     elif "time" in text:
         now = datetime.datetime.now().strftime("%I:%M %p")
