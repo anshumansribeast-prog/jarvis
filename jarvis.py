@@ -427,6 +427,23 @@ def handle_command(text):
         speak("Opening the backend.")
         webbrowser.open(SITES["backend"])
 
+    # Opens a terminal with Claude Code ready to go - Jarvis launches it,
+    # Anshuman still types every request himself. Jarvis never sends it
+    # commands directly; that would mean Claude Code could take real
+    # actions (editing files, running commands) from a misheard voice
+    # command with nobody confirming first, which is exactly the safety
+    # check this deliberately keeps in place. Checked here, before the
+    # generic "open "/"launch "/"start " handler further below, for the
+    # same reason "open semicolon"/"open cosmos"/"open backend" are -
+    # otherwise "open claude code" would starts-with-match that handler
+    # first and never reach a Claude-specific branch at all.
+    elif "claude code" in text:
+        speak("Opening Claude Code.")
+        try:
+            subprocess.Popen(["wt.exe", "claude"])
+        except FileNotFoundError:
+            speak("I couldn't find Windows Terminal on this laptop.")
+
     elif "time" in text:
         now = datetime.datetime.now().strftime("%I:%M %p")
         speak(f"It's {now}.")
