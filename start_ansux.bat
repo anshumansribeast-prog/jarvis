@@ -1,4 +1,4 @@
 @echo off
-REM Legacy launcher — use "Open AnshuX.bat" or double-click AnshuX.vbs instead.
+REM Legacy — opens AnshuX desktop app.
 cd /d "%~dp0"
 call "%~dp0Open AnshuX.bat"

@@ -1,8 +1,8 @@
 @echo off
-REM Opens AnshuX Personal AI in your browser — no terminal window.
+REM Opens AnshuX desktop app — no terminal window.
 cd /d "%~dp0"
 if not exist "venv\Scripts\pythonw.exe" (
-  echo Run install_ansux.bat first.
+  echo AnshuX is not installed. Double-click INSTALL_ANSHUX.bat first.
   pause
   exit /b 1
 )

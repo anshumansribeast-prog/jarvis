@@ -1,4 +1,4 @@
-# Creates an AnshuX desktop shortcut — opens Personal AI in browser (no terminal).
+# Creates an AnshuX desktop shortcut — opens as desktop app (no terminal).
 param(
     [switch]$Remove
 )
@@ -30,10 +30,11 @@ $shortcut.TargetPath = "wscript.exe"
 $shortcut.Arguments = "`"$launcher`""
 $shortcut.WorkingDirectory = $projectRoot
 $shortcut.WindowStyle = 7
-$shortcut.Description = "AnshuX — Personal AI for Anshu (opens in browser)"
+$shortcut.Description = "AnshuX — Personal AI for Anshu (desktop app)"
 if (Test-Path $iconPath) {
     $shortcut.IconLocation = "$iconPath,0"
 }
 $shortcut.Save()
-Write-Host "AnshuX desktop icon created — double-click to open in browser:"
+Write-Host "AnshuX desktop icon created:"
 Write-Host $shortcutPath
+Write-Host "Double-click it to open AnshuX (desktop window, no terminal)."
