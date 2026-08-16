@@ -10,6 +10,13 @@ const commandInput = document.getElementById("command-input");
 const commandSubmit = document.getElementById("command-submit");
 const lastReply = document.getElementById("last-reply");
 const confirmBanner = document.getElementById("confirm-banner");
+const publicUrl = document.getElementById("public-url");
+
+const BASE = (window.ANSUX_BASE || "").replace(/\/$/, "");
+
+function api(path) {
+  return `${BASE}${path}`;
+}
 
 function statusClass(value) {
   if (!value) return "offline";
@@ -78,7 +85,7 @@ function updateClock() {
 
 async function poll() {
   try {
-    const res = await fetch("/api/status");
+    const res = await fetch(api("/api/status"));
     const data = await res.json();
     renderStatus(data);
   } catch (err) {
@@ -89,7 +96,7 @@ async function poll() {
 async function sendCommand(text) {
   commandSubmit.disabled = true;
   try {
-    const res = await fetch("/api/command", {
+    const res = await fetch(api("/api/command"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ text }),

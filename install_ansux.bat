@@ -60,7 +60,8 @@ echo ============================================
 echo.
 echo   Desktop: double-click the AnshuX icon
 echo   Manual:  start_ansux.bat
-echo   HUD:     http://127.0.0.1:8765
+echo   Public URL: https://anshux.punah.pro
+echo   Local HUD:  http://127.0.0.1:8765
 echo.
 echo   Say "AnshuX" to wake the assistant.
 echo.

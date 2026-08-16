@@ -2,7 +2,8 @@
 title AnshuX Server
 cd /d "%~dp0"
 call venv\Scripts\activate.bat 2>nul
-set ANSUX_HUD_HOST=0.0.0.0
+set ANSUX_PUBLIC_URL=https://anshux.punah.pro
+set ANSUX_HUD_HOST=127.0.0.1
 set ANSUX_TEXT_ONLY=true
 set ANSUX_OPEN_HUD_ON_START=false
 echo AnshuX server starting on port %ANSUX_HUD_PORT%

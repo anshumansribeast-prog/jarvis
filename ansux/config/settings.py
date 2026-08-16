@@ -22,6 +22,11 @@ BRAVE_PATH = os.getenv(
 )
 HUD_PORT = int(os.getenv("ANSUX_HUD_PORT", "8765"))
 HUD_HOST = os.getenv("ANSUX_HUD_HOST", "127.0.0.1")
+BASE_PATH = os.getenv("ANSUX_BASE_PATH", "").rstrip("/")
+PUBLIC_URL = os.getenv("ANSUX_PUBLIC_URL", "").strip() or (
+    f"http://127.0.0.1:{HUD_PORT}{BASE_PATH}" if HUD_HOST in ("127.0.0.1", "localhost")
+    else f"http://{HUD_HOST}:{HUD_PORT}{BASE_PATH}"
+)
 HUD_ENABLED = os.getenv("ANSUX_HUD_ENABLED", "true").lower() in ("1", "true", "yes")
 OPEN_HUD_ON_START = os.getenv("ANSUX_OPEN_HUD_ON_START", "true").lower() in ("1", "true", "yes")
 TEXT_ONLY_MODE = os.getenv("ANSUX_TEXT_ONLY", "false").lower() in ("1", "true", "yes")
@@ -43,6 +48,7 @@ SITES = {
     "semicolon": "https://semicolon.punah.pro",
     "cosmos": "https://cosmos.punah.pro",
     "backend": "https://cosmos.punah.pro/backend.html",
+    "anshux": PUBLIC_URL,
     "music": "https://music.youtube.com",
     "youtube": "https://www.youtube.com",
     "github": "https://github.com",

@@ -9,6 +9,7 @@ from typing import Callable
 
 from ansux.config import settings
 from ansux.core import bridge
+from ansux.ui import urls
 
 STATIC_DIR = Path(__file__).resolve().parent / "static"
 _server_started = False
@@ -25,19 +26,36 @@ class _HUDHandler(BaseHTTPRequestHandler):
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
 
+    def _route(self) -> str:
+        return urls.normalize_path(self.path)
+
     def do_OPTIONS(self) -> None:  # noqa: N802
         self.send_response(204)
         self._cors()
         self.end_headers()
 
     def do_GET(self) -> None:  # noqa: N802
-        if self.path in ("/", "/index.html"):
-            self._serve_file(STATIC_DIR / "index.html", "text/html")
-        elif self.path.startswith("/static/"):
-            rel = self.path[len("/static/"):]
+        route = self._route()
+        if route in ("/", "/index.html"):
+            self._serve_index()
+        elif route.startswith("/static/"):
+            rel = route[len("/static/"):]
             self._serve_file(STATIC_DIR / rel, self._content_type(rel))
-        elif self.path == "/api/status":
+        elif route == "/api/status":
             payload = json.dumps((_get_state_fn() if _get_state_fn else {}) or {}).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self._cors()
+            self.send_header("Content-Length", str(len(payload)))
+            self.end_headers()
+            self.wfile.write(payload)
+        elif route == "/api/config":
+            config = {
+                "basePath": settings.BASE_PATH,
+                "publicUrl": settings.PUBLIC_URL,
+                "assistant": settings.ASSISTANT_NAME,
+            }
+            payload = json.dumps(config).encode("utf-8")
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
             self._cors()
@@ -48,7 +66,7 @@ class _HUDHandler(BaseHTTPRequestHandler):
             self.send_error(404)
 
     def do_POST(self) -> None:  # noqa: N802
-        if self.path != "/api/command":
+        if self._route() != "/api/command":
             self.send_error(404)
             return
 
@@ -77,11 +95,27 @@ class _HUDHandler(BaseHTTPRequestHandler):
             return "application/javascript"
         return "application/octet-stream"
 
+    def _serve_index(self) -> None:
+        html_path = STATIC_DIR / "index.html"
+        html = html_path.read_text(encoding="utf-8")
+        base = settings.BASE_PATH or ""
+        html = html.replace("__ANSUX_BASE__", base)
+        html = html.replace("__ANSUX_PUBLIC_URL__", settings.PUBLIC_URL)
+        data = html.encode("utf-8")
+        self.send_response(200)
+        self.send_header("Content-Type", "text/html")
+        self.send_header("Content-Length", str(len(data)))
+        self.end_headers()
+        self.wfile.write(data)
+
     def _serve_file(self, path: Path, content_type: str) -> None:
         if not path.is_file():
             self.send_error(404)
             return
         data = path.read_bytes()
+        if content_type == "text/css":
+            text = data.decode("utf-8").replace("__ANSUX_BASE__", settings.BASE_PATH or "")
+            data = text.encode("utf-8")
         self.send_response(200)
         self.send_header("Content-Type", content_type)
         self.send_header("Content-Length", str(len(data)))
@@ -102,5 +136,5 @@ def start_hud_server(
     bind_port = port or settings.HUD_PORT
     server = ThreadingHTTPServer((bind_host, bind_port), _HUDHandler)
     _server_started = True
-    print(f"AnshuX HUD running at http://{bind_host}:{bind_port}")
+    print(f"AnshuX HUD running at {settings.PUBLIC_URL}")
     server.serve_forever()

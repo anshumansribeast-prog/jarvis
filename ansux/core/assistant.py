@@ -12,6 +12,7 @@ import truststore
 truststore.inject_into_ssl()
 
 from ansux.config import settings
+from ansux.ui.urls import public_hud_url
 from ansux.core import bridge, commands, greetings, status
 from ansux.core.context import get_context
 from ansux.voice import audio, stt, tts, wake
@@ -195,11 +196,11 @@ class AnshuXAssistant:
         snap.update(_state)
         snap["history"] = self.ctx.recent_summary()
         snap["awaiting_confirmation"] = bridge.awaiting_confirmation()
+        snap["publicUrl"] = settings.PUBLIC_URL
         return snap
 
     def _open_hud_browser(self) -> None:
-        host = "127.0.0.1" if settings.HUD_HOST in ("127.0.0.1", "localhost") else settings.HUD_HOST
-        url = f"http://{host}:{settings.HUD_PORT}"
+        url = public_hud_url()
         try:
             if platform.system() == "Windows":
                 subprocess.Popen(["cmd", "/c", "start", "", url], shell=False)

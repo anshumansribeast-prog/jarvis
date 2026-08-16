@@ -1,0 +1,18 @@
+[Unit]
+Description=AnshuX Personal AI Assistant
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/opt/anshux
+Environment=ANSUX_PUBLIC_URL=https://anshux.punah.pro
+Environment=ANSUX_HUD_HOST=127.0.0.1
+Environment=ANSUX_TEXT_ONLY=true
+Environment=ANSUX_OPEN_HUD_ON_START=false
+ExecStart=/opt/anshux/venv/bin/python -m ansux.server
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

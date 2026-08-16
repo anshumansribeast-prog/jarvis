@@ -34,6 +34,7 @@ body {
 .brand { display: flex; gap: 16px; align-items: center; }
 .brand h1 { margin: 0; letter-spacing: 0.35em; font-weight: 300; }
 .subtitle { margin: 4px 0 0; color: var(--muted); font-size: 0.85rem; }
+.public-url { margin: 6px 0 0; color: var(--cyan); font-size: 0.75rem; opacity: 0.85; word-break: break-all; }
 
 .orb {
   width: 72px;
