@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import platform
 import subprocess
 import threading
@@ -12,10 +13,9 @@ import truststore
 truststore.inject_into_ssl()
 
 from ansux.config import settings
-from ansux.ui.urls import public_hud_url
+from ansux.ui.urls import local_hud_url, public_hud_url
 from ansux.core import bridge, commands, greetings, status
 from ansux.core.context import get_context
-from ansux.voice import audio, stt, tts, wake
 
 _state: dict = {
     "listening": False,
@@ -54,19 +54,36 @@ class AnshuXAssistant:
         except Exception:
             return False
 
+    def _voice_files_present(self) -> bool:
+        voice_path = settings.PIPER_VOICE_PATH
+        if not os.path.isabs(voice_path):
+            voice_path = os.path.join(settings.ROOT, voice_path)
+        return os.path.isfile(voice_path)
+
     def _init_voice(self) -> None:
         if not self._voice_enabled:
-            print("Running in text-only mode (no microphone).")
+            print("Running in text-only mode.")
             return
-        if not self._mic_available():
-            print("No microphone detected — text input is available in the HUD.")
+        if not self._voice_files_present():
+            print(f"Voice model not found at {settings.PIPER_VOICE_PATH}")
+            print("Text input still works in the HUD. Run install_ansux.bat to download voices.")
             self._voice_enabled = False
             return
-        print("Loading voice models...")
-        tts.load_voice()
-        stt.load_model()
-        self._voice_ready = True
-        _state["voice_mode"] = True
+        if not self._mic_available():
+            print("No microphone detected — use the text box in the HUD.")
+            self._voice_enabled = False
+            return
+        try:
+            from ansux.voice import audio, stt, tts
+
+            print("Loading voice models...")
+            tts.load_voice()
+            stt.load_model()
+            self._voice_ready = True
+            _state["voice_mode"] = True
+        except Exception as exc:
+            print(f"Voice setup failed ({exc}). Text input still works in the HUD.")
+            self._voice_enabled = False
 
     def _is_yes(self, text: str) -> bool:
         lowered = text.lower()
@@ -80,6 +97,8 @@ class AnshuXAssistant:
 
         if self._voice_enabled and self._voice_ready:
             try:
+                from ansux.voice import audio, stt
+
                 reply_audio = audio.record_chunk()
                 reply = stt.transcribe(reply_audio)
                 if reply:
@@ -101,6 +120,8 @@ class AnshuXAssistant:
     def _output(self, text: str) -> None:
         _state["last_reply"] = text
         if self._voice_ready:
+            from ansux.voice import tts
+
             tts.speak(text)
         else:
             print(f"{settings.ASSISTANT_NAME}: {text}")
@@ -108,6 +129,8 @@ class AnshuXAssistant:
     def _speak(self, text: str) -> None:
         _state["last_reply"] = text
         if self._voice_ready:
+            from ansux.voice import tts
+
             tts.speak(text)
         else:
             print(f"{settings.ASSISTANT_NAME}: {text}")
@@ -133,6 +156,8 @@ class AnshuXAssistant:
             return reply
 
     def _voice_loop(self) -> None:
+        from ansux.voice import audio, stt, wake
+
         while self._running and self._voice_enabled and self._voice_ready:
             _state["listening"] = True
             _state["processing"] = False
@@ -156,37 +181,42 @@ class AnshuXAssistant:
                 print(f"You said: {text}")
             self._handle_text_command(text)
 
+    def _start_hud(self) -> None:
+        from ansux.ui.server import start_hud_server
+
+        threading.Thread(
+            target=start_hud_server,
+            kwargs={"get_state": self._hud_payload},
+            daemon=True,
+        ).start()
+
     def run(self, with_hud: bool | None = None) -> None:
         global _running
         _running = True
-        self._init_voice()
+
         self._handler = commands.CommandHandler(self._speak, self._confirm)
         bridge.register_handlers(self._handle_text_command, self._confirm_text)
-
         _state["text_mode"] = True
+
         use_hud = settings.HUD_ENABLED if with_hud is None else with_hud
         if use_hud:
-            from ansux.ui.server import start_hud_server
-
-            threading.Thread(
-                target=start_hud_server,
-                kwargs={"get_state": self._hud_payload},
-                daemon=True,
-            ).start()
+            self._start_hud()
+            self._wait_for_hud_ready()
+            print(f"Dashboard ready: {local_hud_url()}")
             if settings.OPEN_HUD_ON_START:
-                self._wait_for_hud_ready()
                 self._open_hud_browser()
+
+        # Voice loads after HUD is already up — a voice failure won't block the website.
+        self._init_voice()
 
         self._output(greetings.startup_greeting())
 
         if self._voice_enabled and self._voice_ready:
             threading.Thread(target=self._voice_loop, daemon=True).start()
-            while self._running:
-                time.sleep(1)
-        else:
-            print("Type commands in the HUD text box at the bottom of the dashboard.")
-            while self._running:
-                time.sleep(1)
+
+        print(f"Type commands at {local_hud_url()}")
+        while self._running:
+            time.sleep(1)
 
     def stop(self) -> None:
         self._running = False
@@ -197,9 +227,10 @@ class AnshuXAssistant:
         snap["history"] = self.ctx.recent_summary()
         snap["awaiting_confirmation"] = bridge.awaiting_confirmation()
         snap["publicUrl"] = settings.PUBLIC_URL
+        snap["localUrl"] = local_hud_url()
         return snap
 
-    def _wait_for_hud_ready(self, timeout: float = 15.0) -> None:
+    def _wait_for_hud_ready(self, timeout: float = 20.0) -> None:
         import urllib.error
         import urllib.request
 
@@ -211,9 +242,10 @@ class AnshuXAssistant:
                 return
             except (urllib.error.URLError, OSError):
                 time.sleep(0.3)
+        print("WARNING: HUD did not respond in time. Check for errors above.")
 
     def _open_hud_browser(self) -> None:
-        url = public_hud_url()
+        url = local_hud_url()
         try:
             if platform.system() == "Windows":
                 subprocess.Popen(["cmd", "/c", "start", "", url], shell=False)
@@ -222,11 +254,7 @@ class AnshuXAssistant:
             else:
                 subprocess.Popen(["xdg-open", url])
         except OSError as exc:
-            print(f"Could not open HUD browser: {exc}")
-
-
-def _voice_enabled() -> bool:
-    return _state.get("voice_mode", False)
+            print(f"Could not open browser. Open manually: {url} ({exc})")
 
 
 def main(voice_enabled: bool | None = None) -> None:

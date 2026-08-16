@@ -10,7 +10,7 @@ import subprocess
 from typing import Callable
 
 from ansux.config import settings
-from ansux.ui.urls import public_hud_url
+from ansux.ui.urls import local_hud_url
 from ansux.core import context, knowledge, memory, modes, planner
 from ansux.tools import apps, browser, filesystem, projects, system, windows
 
@@ -165,7 +165,7 @@ class CommandHandler:
 
         elif "open hud" in lowered or "open dashboard" in lowered or "show dashboard" in lowered or "open anshux" in lowered:
             self._say("Opening the AnshuX dashboard.")
-            browser.open_url(public_hud_url())
+            browser.open_url(local_hud_url())
 
         elif "claude code" in lowered:
             self._say("Opening Claude Code.")

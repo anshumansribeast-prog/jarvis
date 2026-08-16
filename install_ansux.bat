@@ -58,10 +58,10 @@ echo ============================================
 echo   AnshuX is installed!
 echo ============================================
 echo.
-echo   Desktop: double-click the AnshuX icon
-echo   Manual:  start_ansux.bat
-echo   Public URL: https://anshux.punah.pro
-echo   Local HUD:  http://127.0.0.1:8765
+echo   1. Double-click start_ansux_hud.bat  (easiest - text mode)
+echo   2. Or run start_ansux.bat             (voice + text)
+echo   3. Keep that window OPEN, then open:
+echo      http://127.0.0.1:8765
 echo.
 echo   Say "AnshuX" to wake the assistant.
 echo.

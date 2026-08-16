@@ -14,6 +14,11 @@ def normalize_path(path: str) -> str:
     return path
 
 
+def local_hud_url() -> str:
+    """URL to open the dashboard on this machine (always localhost)."""
+    return f"http://127.0.0.1:{settings.HUD_PORT}{settings.BASE_PATH or ''}"
+
+
 def public_hud_url() -> str:
     return settings.PUBLIC_URL.rstrip("/")
 

@@ -14,6 +14,20 @@ from ansux.ui import urls
 STATIC_DIR = Path(__file__).resolve().parent / "static"
 _server_started = False
 _get_state_fn: Callable[[], dict] | None = None
+_server_instance: ThreadingHTTPServer | None = None
+
+
+def reset_server_state() -> None:
+    """Allow the HUD server to start again (used after a crash/restart)."""
+    global _server_started, _get_state_fn, _server_instance
+    if _server_instance:
+        try:
+            _server_instance.shutdown()
+        except Exception:
+            pass
+    _server_started = False
+    _get_state_fn = None
+    _server_instance = None
 
 
 class _HUDHandler(BaseHTTPRequestHandler):
@@ -53,6 +67,7 @@ class _HUDHandler(BaseHTTPRequestHandler):
             config = {
                 "basePath": settings.BASE_PATH,
                 "publicUrl": settings.PUBLIC_URL,
+                "localUrl": urls.local_hud_url(),
                 "assistant": settings.ASSISTANT_NAME,
             }
             payload = json.dumps(config).encode("utf-8")
@@ -128,13 +143,15 @@ def start_hud_server(
     port: int | None = None,
     host: str | None = None,
 ) -> None:
-    global _server_started, _get_state_fn
+    global _server_started, _get_state_fn, _server_instance
     if _server_started:
         return
     _get_state_fn = get_state
     bind_host = host or settings.HUD_HOST
     bind_port = port or settings.HUD_PORT
-    server = ThreadingHTTPServer((bind_host, bind_port), _HUDHandler)
+    _server_instance = ThreadingHTTPServer((bind_host, bind_port), _HUDHandler)
     _server_started = True
-    print(f"AnshuX HUD running at {settings.PUBLIC_URL}")
-    server.serve_forever()
+    from ansux.ui.urls import local_hud_url
+
+    print(f"AnshuX HUD running at {local_hud_url()}")
+    _server_instance.serve_forever()
