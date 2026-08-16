@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AnshuX — Personal AI System</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <div class="hud">
+    <header class="top-bar">
+      <div class="brand">
+        <div class="orb" id="orb"></div>
+        <div>
+          <h1>ANSHUX</h1>
+          <p class="subtitle">Personal AI System</p>
+        </div>
+      </div>
+      <div class="clock" id="clock">--:--</div>
+    </header>
+
+    <section class="status-grid" id="status-grid"></section>
+
+    <section class="panels">
+      <div class="panel">
+        <h2>System</h2>
+        <div id="system-metrics"></div>
+      </div>
+      <div class="panel">
+        <h2>Mode</h2>
+        <div class="mode-badge" id="mode-badge">ASSISTANT</div>
+        <div class="mic-indicator" id="mic-indicator">MIC: OFFLINE</div>
+      </div>
+      <div class="panel wide">
+        <h2>Command History</h2>
+        <ul id="history"></ul>
+      </div>
+    </section>
+
+    <div class="waveform" id="waveform">
+      <span></span><span></span><span></span><span></span><span></span>
+      <span></span><span></span><span></span><span></span><span></span>
+    </div>
+  </div>
+  <script src="/static/app.js"></script>
+</body>
+</html>
