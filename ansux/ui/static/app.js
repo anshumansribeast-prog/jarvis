@@ -63,7 +63,7 @@ function renderStatus(data) {
     commandInput.placeholder = "Type yes or no to confirm…";
   } else {
     confirmBanner.classList.add("hidden");
-    commandInput.placeholder = "Type a command if the mic is not working… e.g. open vs code, what time is it";
+    commandInput.placeholder = "Ask AnshuX anything… e.g. what time is it, open vs code";
   }
 
   if (data.last_reply) {

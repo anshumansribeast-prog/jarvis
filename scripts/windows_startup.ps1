@@ -4,7 +4,7 @@ param(
 )
 
 $projectRoot = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
-$batPath = Join-Path $projectRoot "start_ansux.bat"
+$launcher = Join-Path $projectRoot "AnshuX.vbs"
 $startupFolder = [Environment]::GetFolderPath("Startup")
 $shortcutPath = Join-Path $startupFolder "AnshuX.lnk"
 $iconPath = Join-Path $projectRoot "assets\ansux.ico"
@@ -17,7 +17,8 @@ if ($Remove) {
 
 $wsh = New-Object -ComObject WScript.Shell
 $shortcut = $wsh.CreateShortcut($shortcutPath)
-$shortcut.TargetPath = $batPath
+$shortcut.TargetPath = "wscript.exe"
+$shortcut.Arguments = "`"$launcher`""
 $shortcut.WorkingDirectory = $projectRoot
 $shortcut.WindowStyle = 7
 $shortcut.Description = "AnshuX Personal AI Assistant"

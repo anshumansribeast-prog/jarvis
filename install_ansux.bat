@@ -41,7 +41,7 @@ if not exist "voices\en_US-lessac-medium.onnx" (
     "Invoke-WebRequest -Uri 'https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/en/en_US/lessac/medium/en_US-lessac-medium.onnx.json' -OutFile 'voices\en_US-lessac-medium.onnx.json'"
 )
 
-echo [4/5] Creating desktop icon...
+echo [4/5] Creating desktop icon (opens in browser)...
 powershell -NoProfile -ExecutionPolicy Bypass -File "scripts\create_desktop_shortcut.ps1"
 if errorlevel 1 (
   echo Desktop shortcut step failed.
@@ -58,11 +58,12 @@ echo ============================================
 echo   AnshuX is installed!
 echo ============================================
 echo.
-echo   1. Double-click start_ansux_hud.bat  (easiest - text mode)
-echo   2. Or run start_ansux.bat             (voice + text)
-echo   3. Keep that window OPEN, then open:
-echo      http://127.0.0.1:8765
+echo   Double-click the AnshuX icon on your Desktop
+echo   It opens Personal AI directly in your browser.
 echo.
-echo   Say "AnshuX" to wake the assistant.
+echo   Or double-click: Open AnshuX.bat
+echo   URL: http://127.0.0.1:8765
+echo.
+echo   No terminal window needed.
 echo.
 pause
