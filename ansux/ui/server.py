@@ -1,14 +1,14 @@
-"""AnshuX HUD web dashboard."""
+"""AnshuX HUD web dashboard with text command API."""
 
 from __future__ import annotations
 
 import json
-import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Callable
 
 from ansux.config import settings
+from ansux.core import bridge
 
 STATIC_DIR = Path(__file__).resolve().parent / "static"
 _server_started = False
@@ -20,6 +20,16 @@ class _HUDHandler(BaseHTTPRequestHandler):
     def log_message(self, format: str, *args) -> None:  # noqa: A003
         return
 
+    def _cors(self) -> None:
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+
+    def do_OPTIONS(self) -> None:  # noqa: N802
+        self.send_response(204)
+        self._cors()
+        self.end_headers()
+
     def do_GET(self) -> None:  # noqa: N802
         if self.path in ("/", "/index.html"):
             self._serve_file(STATIC_DIR / "index.html", "text/html")
@@ -30,11 +40,35 @@ class _HUDHandler(BaseHTTPRequestHandler):
             payload = json.dumps((_get_state_fn() if _get_state_fn else {}) or {}).encode("utf-8")
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
+            self._cors()
             self.send_header("Content-Length", str(len(payload)))
             self.end_headers()
             self.wfile.write(payload)
         else:
             self.send_error(404)
+
+    def do_POST(self) -> None:  # noqa: N802
+        if self.path != "/api/command":
+            self.send_error(404)
+            return
+
+        length = int(self.headers.get("Content-Length", 0))
+        body = self.rfile.read(length) if length else b"{}"
+        try:
+            data = json.loads(body.decode("utf-8"))
+        except json.JSONDecodeError:
+            data = {}
+
+        text = str(data.get("text", "")).strip()
+        result = bridge.submit_text(text)
+        payload = json.dumps(result).encode("utf-8")
+
+        self.send_response(200)
+        self.send_header("Content-Type", "application/json")
+        self._cors()
+        self.send_header("Content-Length", str(len(payload)))
+        self.end_headers()
+        self.wfile.write(payload)
 
     def _content_type(self, name: str) -> str:
         if name.endswith(".css"):
@@ -55,12 +89,18 @@ class _HUDHandler(BaseHTTPRequestHandler):
         self.wfile.write(data)
 
 
-def start_hud_server(get_state: Callable[[], dict], port: int | None = None) -> None:
+def start_hud_server(
+    get_state: Callable[[], dict],
+    port: int | None = None,
+    host: str | None = None,
+) -> None:
     global _server_started, _get_state_fn
     if _server_started:
         return
     _get_state_fn = get_state
-    server = ThreadingHTTPServer(("127.0.0.1", port or settings.HUD_PORT), _HUDHandler)
+    bind_host = host or settings.HUD_HOST
+    bind_port = port or settings.HUD_PORT
+    server = ThreadingHTTPServer((bind_host, bind_port), _HUDHandler)
     _server_started = True
-    print(f"AnshuX HUD running at http://127.0.0.1:{port or settings.HUD_PORT}")
+    print(f"AnshuX HUD running at http://{bind_host}:{bind_port}")
     server.serve_forever()

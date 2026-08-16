@@ -144,3 +144,67 @@ body {
 @media (max-width: 768px) {
   .panels { grid-template-columns: 1fr; }
 }
+
+.command-panel {
+  margin-top: 20px;
+  background: var(--panel);
+  border: 1px solid rgba(61, 232, 255, 0.25);
+  border-radius: 16px;
+  padding: 16px;
+}
+
+.command-form {
+  display: flex;
+  gap: 10px;
+}
+
+.command-form input {
+  flex: 1;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(61, 232, 255, 0.35);
+  border-radius: 10px;
+  color: var(--text);
+  padding: 12px 14px;
+  font-size: 1rem;
+  outline: none;
+}
+
+.command-form input:focus {
+  border-color: var(--cyan);
+  box-shadow: 0 0 0 2px rgba(61, 232, 255, 0.15);
+}
+
+.command-form button {
+  background: linear-gradient(180deg, var(--cyan), var(--blue));
+  color: #021018;
+  border: none;
+  border-radius: 10px;
+  padding: 0 18px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.command-form button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.confirm-banner {
+  margin-bottom: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--partial);
+  color: var(--partial);
+  background: rgba(255, 204, 102, 0.08);
+}
+
+.confirm-banner.hidden { display: none; }
+
+.last-reply {
+  margin-top: 10px;
+  color: var(--muted);
+  min-height: 1.2rem;
+  font-size: 0.95rem;
+}
+
+.last-reply strong { color: var(--cyan); }

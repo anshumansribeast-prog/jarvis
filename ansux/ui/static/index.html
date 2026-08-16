@@ -37,6 +37,21 @@
       </div>
     </section>
 
+    <section class="command-panel" id="command-panel">
+      <div class="confirm-banner hidden" id="confirm-banner"></div>
+      <form id="command-form" class="command-form">
+        <input
+          type="text"
+          id="command-input"
+          placeholder="Type a command if the mic is not working… e.g. open vs code, what time is it"
+          autocomplete="off"
+          aria-label="Command text input"
+        />
+        <button type="submit" id="command-submit">Send</button>
+      </form>
+      <div class="last-reply" id="last-reply"></div>
+    </section>
+
     <div class="waveform" id="waveform">
       <span></span><span></span><span></span><span></span><span></span>
       <span></span><span></span><span></span><span></span><span></span>
