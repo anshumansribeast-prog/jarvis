@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import platform
+import subprocess
 import threading
-from typing import Callable
+import time
 
 import truststore
 
@@ -59,6 +61,9 @@ class AnshuXAssistant:
             from ansux.ui.server import start_hud_server
 
             threading.Thread(target=start_hud_server, kwargs={"get_state": self._hud_payload}, daemon=True).start()
+            if settings.OPEN_HUD_ON_START:
+                self._open_hud_browser()
+                time.sleep(0.8)
 
         self._speak(greetings.startup_greeting())
         running = True
@@ -88,6 +93,18 @@ class AnshuXAssistant:
         snap.update(_state)
         snap["history"] = self.ctx.recent_summary()
         return snap
+
+    def _open_hud_browser(self) -> None:
+        url = f"http://127.0.0.1:{settings.HUD_PORT}"
+        try:
+            if platform.system() == "Windows":
+                subprocess.Popen(["cmd", "/c", "start", "", url], shell=False)
+            elif platform.system() == "Darwin":
+                subprocess.Popen(["open", url])
+            else:
+                subprocess.Popen(["xdg-open", url])
+        except OSError as exc:
+            print(f"Could not open HUD browser: {exc}")
 
 
 def main() -> None:

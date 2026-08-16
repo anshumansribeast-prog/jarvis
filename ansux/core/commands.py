@@ -162,6 +162,10 @@ class CommandHandler:
             self._say("Opening GitHub.")
             browser.open_site("github")
 
+        elif "open hud" in lowered or "open dashboard" in lowered or "show dashboard" in lowered:
+            self._say("Opening the AnshuX dashboard.")
+            browser.open_url(f"http://127.0.0.1:{settings.HUD_PORT}")
+
         elif "claude code" in lowered:
             self._say("Opening Claude Code.")
             if platform.system() == "Windows":

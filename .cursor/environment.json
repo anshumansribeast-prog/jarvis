@@ -1,0 +1,9 @@
+{
+  "name": "AnshuX Personal AI",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": "."
+  },
+  "user": "ubuntu",
+  "install": "bash .cursor/scripts/cloud-agent-install.sh"
+}

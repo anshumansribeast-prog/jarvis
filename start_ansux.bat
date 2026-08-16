@@ -1,7 +1,8 @@
 @echo off
+title AnshuX - Personal AI System
 cd /d "%~dp0"
 if not exist "venv\Scripts\python.exe" (
-  echo Creating virtual environment...
+  echo AnshuX: setting up environment...
   python -m venv venv
   call venv\Scripts\activate.bat
   pip install -r requirements.txt

@@ -22,6 +22,7 @@ BRAVE_PATH = os.getenv(
 )
 HUD_PORT = int(os.getenv("ANSUX_HUD_PORT", "8765"))
 HUD_ENABLED = os.getenv("ANSUX_HUD_ENABLED", "true").lower() in ("1", "true", "yes")
+OPEN_HUD_ON_START = os.getenv("ANSUX_OPEN_HUD_ON_START", "true").lower() in ("1", "true", "yes")
 SILENCE_RMS_THRESHOLD = int(os.getenv("ANSUX_SILENCE_THRESHOLD", "150"))
 WAKE_CHUNK_SECONDS = float(os.getenv("ANSUX_WAKE_CHUNK_SECONDS", "2.5"))
 RECORD_SECONDS = float(os.getenv("ANSUX_RECORD_SECONDS", "4"))
