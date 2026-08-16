@@ -4,3 +4,8 @@ truststore
 numpy
 faster-whisper
 piper-tts
+python-dotenv
+flask
+psutil
+pywin32; sys_platform == 'win32'
+Pillow; sys_platform == 'win32'

@@ -5,6 +5,7 @@ tts_test.wav
 __pycache__/
 voices/
 config/facts.json
+config/preferences.json
 _test_stdout.log
 _test_stderr.log
 screenshots/
