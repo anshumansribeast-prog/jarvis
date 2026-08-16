@@ -1,0 +1,34 @@
+============================================
+  ANSHUX IS READY
+============================================
+
+WINDOWS (your laptop) — do this once:
+-------------------------------------
+1. Open your jarvis folder in File Explorer
+2. Double-click:  ANSHUX_READY.bat
+3. Wait for "Install complete!"
+4. Use the AnshuX icon on your Desktop anytime after that
+
+No terminal. No typing URLs. Desktop app window opens automatically.
+
+
+ONLINE (use from phone or any browser right now):
+-------------------------------------------------
+https://shades-flower-movement-development.trycloudflare.com
+
+Type commands in the text box at the bottom.
+(This link works while the cloud session is active.)
+
+
+LOCAL URL (after install on your PC):
+-------------------------------------
+http://127.0.0.1:8765
+
+
+TROUBLESHOOTING:
+----------------
+- Run scripts\check_ansux.bat
+- Need Python 3.12+ from https://www.python.org/downloads/
+- Check "Add Python to PATH" when installing Python
+
+============================================

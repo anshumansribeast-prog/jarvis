@@ -65,6 +65,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "scripts\create_desktop_shor
 if errorlevel 1 (
   echo Desktop shortcut failed — you can still use AnshuX.vbs in this folder.
 )
+copy /Y "ANSHUX_READY.txt" "%USERPROFILE%\Desktop\ANSHUX_READY.txt" >nul 2>&1
 
 echo [6/6] Quick test...
 set "PYTHONPATH=%CD%"
