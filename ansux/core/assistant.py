@@ -173,8 +173,8 @@ class AnshuXAssistant:
                 kwargs={"get_state": self._hud_payload},
                 daemon=True,
             ).start()
-            time.sleep(0.5)
             if settings.OPEN_HUD_ON_START:
+                self._wait_for_hud_ready()
                 self._open_hud_browser()
 
         self._output(greetings.startup_greeting())
@@ -198,6 +198,19 @@ class AnshuXAssistant:
         snap["awaiting_confirmation"] = bridge.awaiting_confirmation()
         snap["publicUrl"] = settings.PUBLIC_URL
         return snap
+
+    def _wait_for_hud_ready(self, timeout: float = 15.0) -> None:
+        import urllib.error
+        import urllib.request
+
+        url = f"http://127.0.0.1:{settings.HUD_PORT}/api/status"
+        deadline = time.time() + timeout
+        while time.time() < deadline:
+            try:
+                urllib.request.urlopen(url, timeout=1)
+                return
+            except (urllib.error.URLError, OSError):
+                time.sleep(0.3)
 
     def _open_hud_browser(self) -> None:
         url = public_hud_url()
