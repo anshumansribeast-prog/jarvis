@@ -1,25 +1,32 @@
 # AGENTS.md
 
-Two agents share this repo through `AGENT_TASK.md` and `AGENT_LOG.md`.
+Team name: **Anshux**. Control files: `AGENT_TASK.md`, `AGENT_LOG.md`.
 
-## Codex (main)
+## Anshux (main) — Cursor
 
-Lead Architect. Default owner of implementation.
+Main agent. Runs in Cursor (Cloud or desktop). Owns this repo’s TEST/BUILD loop.
 
 - Read `AGENT_TASK.md` first.
-- Act only when `STATUS: BUILD`.
+- On `STATUS: BUILD`: implement the spec (or hand it to Claude Code), log as **Anshux**, then set `STATUS: TEST`.
+- On `STATUS: TEST`: run `python -m pytest -q` (or the project venv). FAIL → `STATUS: BUILD` with errors. PASS → next spec and `STATUS: BUILD`, or `STATUS: STOP`.
+- On `STATUS: STOP`: do nothing.
+
+## Claude Code
+
+Co-architect. Same BUILD rights as Anshux; not the main agent.
+
+- Act on `STATUS: BUILD` when Anshux has not already claimed the spec.
 - Implement the current BUILD specification.
-- Append what you did to `AGENT_LOG.md` as **Codex**.
-- When the spec is done, set `STATUS: TEST` so AnshX can run the suite.
-- If `STATUS: STOP`, do nothing.
+- Log as **Claude Code**.
+- Set `STATUS: TEST` when done so Anshux can run QA.
+- On `STATUS: STOP`: do nothing.
 
-## AnshX
+Jarvis can launch Claude Code on Windows (`wt.exe` + `claude`) for interactive coding. That launch does not send commands; Anshuman types them.
 
-Automated QA Tester. Does not write product features.
+## Codex
 
-- Act only when `STATUS: TEST`.
-- Run the full suite (`python -m pytest -q` or the project venv equivalent).
-- On FAIL: write the error in `AGENT_TASK.md`, set `STATUS: BUILD`.
-- On PASS: write the next unit-test / feature spec in `AGENT_TASK.md`, set `STATUS: BUILD`.
-- Log every cycle in `AGENT_LOG.md` as **AnshX**.
-- If `STATUS: STOP`, do nothing.
+Co-architect helper. Not main.
+
+- Act on `STATUS: BUILD` only if Anshux and Claude Code are not already implementing.
+- Log as **Codex**.
+- Set `STATUS: TEST` when done.

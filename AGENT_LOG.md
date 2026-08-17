@@ -1,6 +1,6 @@
 # AGENT_LOG
 
-Codex (main, BUILD) and AnshX (QA, TEST).
+**Anshux** (main, Cursor) · Claude Code (co-architect) · Codex (helper). Legacy rows used the name AnshX.
 
 | Timestamp (UTC) | Agent | Action | Result |
 | --- | --- | --- | --- |
@@ -19,3 +19,4 @@ Codex (main, BUILD) and AnshX (QA, TEST).
 | 2026-08-17T17:57:00Z | AnshX | Re-ran pytest -v | PASS 36 tests in 0.17s |
 | 2026-08-17T17:57:30Z | AnshX | Recorded Windows-only backlog; set STATUS STOP | Loop halted |
 | 2026-08-17T17:58:00Z | AnshX | Added Codex as MAIN (BUILD); AnshX stays QA (TEST); STATUS BUILD | Codex is now the main agent |
+| 2026-08-17T18:00:00Z | Anshux | Renamed main agent to Anshux (Cursor); added Claude Code as co-architect; Codex is helper | STATUS BUILD |
