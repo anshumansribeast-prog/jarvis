@@ -3,27 +3,29 @@
 AGENT: AnshX
 ROLE: Lead Architect & Automated QA Tester
 
-STATUS: TEST
+STATUS: STOP
 
 ## Current objective
 
-Re-run the full pytest suite after BUILD added unit tests and deferred Piper/Whisper load.
+None — AnshX TEST/BUILD loop halted after a green suite. Remaining work needs a Windows machine.
 
 ## Last test run
 
-- Command: `python3 -m pytest -q`
-- Result: FAIL (previous cycle)
-- Timestamp: 2026-08-17T17:48:00Z
-- Failure: `No module named pytest`; no `tests/` directory
+- Command: `/tmp/jarvis-test-venv/bin/python -m pytest -v --tb=short`
+- Result: PASS
+- Timestamp: 2026-08-17T17:57:00Z
+- Counts: 36 passed in 0.17s
 
-## BUILD completed this cycle
+```
+tests/test_app_controller.py .....
+tests/test_file_controller.py ........
+tests/test_is_speech.py ..
+tests/test_jarvis_commands.py ..............
+tests/test_memory_controller.py .......
+```
 
-- `pytest` added to `requirements.txt`
-- `pytest.ini` + `tests/` for memory, files, apps, and command routing
-- `jarvis.py` loads Piper/Whisper/mic on first audio use, not at import
+## Next logical spec (backlog — do not BUILD in this Linux environment)
 
-## Notes for AnshX
+Windows-only integration tests for `window_controller` (minimize/maximize/switch_to) and `system_controller` (volume keys, screenshot via ImageGrab). Those modules require pywin32 and a real desktop session. Spec them on a Windows host, then set STATUS: TEST there.
 
-- Execute `python3 -m pytest -q` (install pytest first if needed).
-- On failure: STATUS BUILD with logs.
-- On pass: next unit-test / feature spec, then STATUS BUILD.
+Do not request manual verification of the pytest suite; it already ran unattended.

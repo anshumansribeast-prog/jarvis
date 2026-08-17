@@ -6,9 +6,21 @@ from unittest.mock import MagicMock
 
 import pytest
 
-# Heavy optional deps (Piper / Whisper / PortAudio) are not required for
-# command-routing tests. Stub them before any test imports jarvis.
-for _name in ("piper", "faster_whisper", "sounddevice", "truststore"):
+# Heavy optional deps (Piper / Whisper / PortAudio) and Windows-only
+# modules are not required for command-routing tests. Stub them before
+# any test imports jarvis.
+for _name in (
+    "piper",
+    "faster_whisper",
+    "sounddevice",
+    "truststore",
+    "win32api",
+    "win32con",
+    "win32gui",
+    "pywintypes",
+    "PIL",
+    "PIL.ImageGrab",
+):
     sys.modules.setdefault(_name, MagicMock())
 
 
@@ -16,6 +28,13 @@ for _name in ("piper", "faster_whisper", "sounddevice", "truststore"):
 def facts_file(tmp_path, monkeypatch):
     path = tmp_path / "facts.json"
     monkeypatch.setattr("memory_controller.FACTS_PATH", str(path))
+    return path
+
+
+@pytest.fixture
+def projects_file(tmp_path, monkeypatch):
+    path = tmp_path / "projects.json"
+    monkeypatch.setattr("memory_controller.PROJECTS_PATH", str(path))
     return path
 
 

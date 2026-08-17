@@ -28,3 +28,15 @@ def test_all_facts_returns_everything_remembered(facts_file):
 def test_load_missing_file_is_empty(facts_file):
     assert not facts_file.exists()
     assert memory_controller.all_facts() == {}
+
+
+def test_remember_project_and_project_facts(projects_file):
+    memory_controller.remember_project("Semicolon", "A learn-to-code site.")
+    assert memory_controller.project_facts() == {
+        "semicolon": "A learn-to-code site."
+    }
+
+
+def test_project_facts_missing_file_is_empty(projects_file):
+    assert not projects_file.exists()
+    assert memory_controller.project_facts() == {}

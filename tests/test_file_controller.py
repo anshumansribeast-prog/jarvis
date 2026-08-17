@@ -16,7 +16,11 @@ def test_create_file_adds_txt_when_no_extension(isolated_home):
     assert os.path.isfile(path)
 
 
-def test_find_matches_substring_shortest_first(isolated_home):
+def test_find_uses_current_home_when_root_omitted(isolated_home):
+    _home, folders = isolated_home
+    path = file_controller.create_file("unique-qa-marker.txt")
+    matches = file_controller.find("unique-qa-marker")
+    assert matches == [path]
     _home, folders = isolated_home
     file_controller.create_file("alpha-report.txt")
     nested = os.path.join(folders["documents"], "reports")

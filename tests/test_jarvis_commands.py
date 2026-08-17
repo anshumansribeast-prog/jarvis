@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock
+import os
 
 import jarvis
 
@@ -84,3 +84,38 @@ def test_open_unknown_project(monkeypatch):
     monkeypatch.setattr(jarvis, "speak", lambda text: spoken.append(text))
     jarvis.handle_command("open widget project")
     assert "don't have a project called widget" in spoken[-1]
+
+
+def test_create_folder_called_on_desktop(monkeypatch, isolated_home):
+    spoken = []
+    monkeypatch.setattr(jarvis, "speak", lambda text: spoken.append(text))
+    jarvis.handle_command("create a folder called qa-notes")
+    _home, folders = isolated_home
+    assert os.path.isdir(os.path.join(folders["desktop"], "qa-notes"))
+    assert spoken[-1] == "Created the folder qa-notes on your desktop."
+
+
+def test_delete_aborts_without_confirm(monkeypatch, isolated_home):
+    spoken = []
+    _home, folders = isolated_home
+    target = os.path.join(folders["desktop"], "keep.txt")
+    with open(target, "w", encoding="utf-8"):
+        pass
+    monkeypatch.setattr(jarvis, "speak", lambda text: spoken.append(text))
+    monkeypatch.setattr(jarvis, "confirm", lambda _prompt: False)
+    jarvis.handle_command("delete keep.txt")
+    assert os.path.isfile(target)
+    assert spoken[-1] == "Okay, I won't delete it."
+
+
+def test_delete_removes_file_when_confirmed(monkeypatch, isolated_home):
+    spoken = []
+    _home, folders = isolated_home
+    target = os.path.join(folders["desktop"], "gone.txt")
+    with open(target, "w", encoding="utf-8"):
+        pass
+    monkeypatch.setattr(jarvis, "speak", lambda text: spoken.append(text))
+    monkeypatch.setattr(jarvis, "confirm", lambda _prompt: True)
+    jarvis.handle_command("delete gone.txt")
+    assert not os.path.exists(target)
+    assert spoken[-1] == "Deleted gone.txt."
