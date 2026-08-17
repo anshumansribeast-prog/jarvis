@@ -3,6 +3,8 @@
 PROJECT: ANSHUX
 STATUS: BUILD
 
+Codex local session is separate. To make Codex run, copy `anshux/codex-role\*` into `C:\Users\Anshu\Documents\Codex\2026-08-17\<role-folder>\` so that folder has `AGENT_TASK.md` (`STATUS: REVIEW`), `AGENT_LOG.md`, `README.md`, and `work\` HTML. See `anshux/codex-role/README.md`.
+
 ORCHESTRATOR: Cursor
 MAIN IMPLEMENTER: Claude Code
 SUB IMPLEMENTER: Codex
@@ -21,9 +23,7 @@ When this file exists and pytest still passes on Linux, Main is done.
 
 ## Sub spec (Codex)
 
-**Do SUB-2 first.** Read `CODEX_INBOX.md` then `anshux/codex/work/ASSIGNMENT.md`.
-
-Write `anshux/codex/outputs/SITE_SECURITY_REPORT.md` (Semicolon + Cosmos, all listed URLs). If Codex is not in this repo, paste those two files into Codex — do not use the empty `Documents\Codex\...\role-*\work` folder.
+Codex only sees its Documents\Codex role folder. **Copy `anshux/codex-role\*` into that folder** (see `anshux/codex-role/README.md`). Then Codex has `STATUS: REVIEW`, `work\` HTML for Semicolon/Cosmos, and must write `outputs\SITE_SECURITY_REPORT.md`.
 
 SUB-1 (`tests/test_system_controller.py`) stays open for after SUB-2.
 

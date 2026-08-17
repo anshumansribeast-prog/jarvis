@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>window.COSMOS_BASE_PATH = "/back";</script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cosmos v2 — a server that remembers</title>
+
+  <!-- ===================================================================
+       THIS SCRIPT MUST STAY HERE, IN THE HEAD, AND MUST STAY INLINE.
+
+       The problem it solves is called FOUC — a flash of unstyled, or in
+       this case wrongly-coloured, content. The browser paints the page
+       as soon as it can. If the code that applies your saved theme
+       lives in a file at the bottom, the page is already on screen in
+       the DEFAULT colours before that file has even been fetched, so
+       choosing light mode means a bright page that flashes dark for a
+       moment on every single load. It looks broken, and it is
+       genuinely unpleasant if you are light-sensitive.
+
+       Inline and in the head, this runs BEFORE the first paint. There
+       is nothing to see flash because nothing has been drawn yet.
+
+       This is the one place where "put your JavaScript in a separate
+       file at the end" is the wrong advice. Rules have reasons, and
+       when you know the reason you can tell when it does not apply.
+       =================================================================== -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem("cosmos_theme");
+
+        /* No saved choice? Follow the operating system. Someone who
+           has set their whole computer to light mode has already told
+           you what they want — asking again with a dark page first is
+           not respecting an answer they already gave. */
+        var theme = saved || (window.matchMedia &&
+          window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
+
+        document.documentElement.setAttribute("data-theme", theme);
+      } catch (e) {
+        /* localStorage throws in some private-browsing modes. A theme
+           that cannot be remembered is a small annoyance; a page that
+           refuses to load because of it is a broken site. */
+      }
+    })();
+  </script>
+
+  <link rel="stylesheet" href="/back/style.css">
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="header-top">
+      <span class="badge">Phase 3 · the server can write</span>
+
+      <!-- A real <button>, not a styled <div>. It is focusable, it
+           works from the keyboard, and a screen reader announces it as
+           a button — all for free, and all things you would otherwise
+           have to rebuild by hand and probably get wrong.
+
+           aria-pressed tells assistive software this is a toggle and
+           which state it is in. theme.js keeps it truthful. -->
+      <button id="themeToggle" class="theme-toggle" type="button" aria-pressed="false">
+        <span class="theme-icon" aria-hidden="true"></span>
+        <span class="theme-label">Theme</span>
+      </button>
+    </div>
+
+    <h1>A server that remembers</h1>
+    <p class="lede">
+      Nothing on this page is written into the HTML. Every planet below was fetched from
+      a real HTTP server, which read it out of a real SQLite database, which was filled
+      by a seed script. Browser → server → database → back again.
+    </p>
+    <p class="lede" style="margin-top:.6rem">
+      New in Phase 3: it goes the other way too. You can make an account and take the
+      quiz, and what you did is still there tomorrow — on the server, not in your
+      browser. Your score is worked out by the server, so it cannot be faked.
+    </p>
+  </div>
+</header>
+
+<div class="layout wrap">
+<main>
+
+  <section id="healthSection">
+    <h2>1 · Is anything alive?</h2>
+    <p class="hint"><code>GET /api/health</code> — the server queries the database before answering.</p>
+    <pre id="health" class="out">checking…</pre>
+  </section>
+
+  <section id="planetsSection">
+    <h2>2 · Data from the database</h2>
+    <p class="hint">
+      <code>GET /api/planets</code> — filtering and sorting happen in SQL, on the server.
+      In v1 this was a hard-coded JavaScript array.
+    </p>
+
+    <div class="controls">
+      <label>Type
+        <select id="type">
+          <option value="">All</option>
+          <option value="rocky">Rocky</option>
+          <option value="gas">Gas giants</option>
+          <option value="ice">Ice giants</option>
+        </select>
+      </label>
+      <label>Sort by
+        <select id="sort">
+          <option value="order">Distance from Sun</option>
+          <option value="size">Size</option>
+          <option value="moons">Moons</option>
+          <option value="name">Name</option>
+        </select>
+      </label>
+      <span id="count" class="count"></span>
+    </div>
+
+    <div id="url" class="url"></div>
+    <div id="planets" class="grid">loading…</div>
+  </section>
+
+  <section id="detailSection">
+    <h2>3 · One record, joined with another table</h2>
+    <p class="hint">
+      <code>GET /api/planets/:slug</code> — two queries, never one-per-fact.
+      Click any planet above.
+    </p>
+    <pre id="detail" class="out">nothing selected</pre>
+  </section>
+
+  <section id="moonSection">
+    <h2>4 · A question with no fixed answer</h2>
+    <p class="hint">
+      <code>GET /api/moon?date=</code> — the only endpoint that cannot be pre-computed,
+      because you choose the date. Pick any day, past or future.
+    </p>
+
+    <div class="controls">
+      <label>Date
+        <input type="date" id="moonDate" value="2026-07-28">
+      </label>
+      <span id="moonMode" class="count"></span>
+    </div>
+
+    <pre id="moon" class="out">pick a date</pre>
+  </section>
+
+  <section id="quizSection">
+    <h2>5 · Something you send TO the server</h2>
+    <p class="hint">
+      <code>GET /api/quiz/levels/:id</code> then <code>POST /api/quiz/attempts</code> —
+      the questions come down without their answers, and the marking happens on the
+      server. Look in DevTools: the correct answers are genuinely not in the response.
+    </p>
+
+    <div id="levelPicker" class="levels">loading levels…</div>
+    <div id="quizStage" class="quiz-stage" hidden></div>
+  </section>
+
+</main>
+
+<!-- ===================================================================
+     THE SIDEBAR — who you are, and who else has played.
+
+     Everything in here is empty in the HTML and filled in by
+     JavaScript, for one specific reason: this page is also built into
+     a folder of static files for Netlify, and those files are the
+     SAME file for every visitor. Bake a name into the HTML and every
+     visitor sees that name. Anything that differs per person has to
+     arrive after the page does.
+     =================================================================== -->
+<aside class="sidebar">
+
+  <!-- Where the data comes from. Filled in by source.js, and hidden
+       entirely on the baked copy, where there is nothing to switch
+       to. A control that cannot do anything should not be on screen. -->
+  <div class="panel" id="sourcePanel" hidden>
+    <h3>Data source</h3>
+    <div id="sourceBody"></div>
+  </div>
+
+  <div class="panel" id="accountPanel">
+    <h3>Your account</h3>
+    <div id="accountBody" class="account-body">checking…</div>
+  </div>
+
+  <div class="panel" id="chatPanel" hidden>
+    <h3>Beast</h3>
+    <p class="panel-hint">Signed-in only. This appears right here after you log in above — same page, same URL.
+      Type <code>show moon</code>, <code>show planets</code>, <code>show quiz</code>, <code>show health</code>,
+      <code>show detail</code> or <code>show all</code> to switch what's visible above — no page reload.</p>
+    <div id="chatLog" class="chat-log"></div>
+    <form id="chatForm" class="chat-form">
+      <input type="text" id="chatInput" placeholder="Type a message…" autocomplete="off">
+      <button type="submit" class="btn">Send</button>
+    </form>
+  </div>
+
+  <div class="panel">
+    <h3>Stargazers</h3>
+    <p class="panel-hint">Best score per person. Everyone here typed their own name — or signed in.</p>
+
+    <label class="board-pick">Level
+      <select id="boardLevel">
+        <option value="1">1 · Stargazer</option>
+        <option value="2">2 · Observer</option>
+        <option value="3">3 · Sky Navigator</option>
+        <option value="4">4 · Astronomer</option>
+      </select>
+    </label>
+
+    <ol id="board" class="board">loading…</ol>
+  </div>
+
+</aside>
+</div>
+
+<footer class="wrap">
+  <p>
+    Cosmos v2 · Phase 3 · zero npm dependencies — <code>node:http</code>,
+    <code>node:sqlite</code>, <code>node:crypto</code> and <code>node:test</code>
+    are all built into Node.
+  </p>
+</footer>
+
+<script src="/back/base.js"></script>
+<script src="/back/app.js"></script>
+<script src="/back/source.js"></script>
+<script src="/back/account.js"></script>
+<script src="/back/chat.js"></script>
+<script src="/back/quiz.js"></script>
+<script src="/back/theme.js"></script>
+</body>
+</html>

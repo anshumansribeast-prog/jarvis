@@ -26,3 +26,5 @@ Legacy rows used AnshX / Anshux as a single agent name.
 | 2026-08-17T18:05:00Z | Cursor | Assigned Codex SUB-2: inventory + defensive security of Semicolon and Cosmos sites | SUB-2 OPEN |
 | 2026-08-17T18:07:00Z | Codex | Looked in empty Codex role-folder `work/` / `outputs/` (0 files); no AGENT_TASK.md; no network | BLOCKED — wrong workspace |
 | 2026-08-17T18:08:00Z | Cursor | Logged Codex block; added `CODEX_INBOX.md` + `anshux/codex/work/ASSIGNMENT.md` with live URLs and probe table | Unblocked if Codex opens jarvis repo or pastes inbox |
+| 2026-08-17T18:09:00Z | Codex | Rechecked empty role work/outputs; no AGENT_TASK.md / AGENT_LOG.md / README.md | Still BLOCKED |
+| 2026-08-17T18:11:00Z | Cursor | Built `anshux/codex-role/` with STATUS: REVIEW, README, AGENT_TASK, AGENT_LOG, seeded work/ HTML | Copy that folder into the Codex role directory |
