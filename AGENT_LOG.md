@@ -23,3 +23,4 @@ Legacy rows used AnshX / Anshux as a single agent name.
 | 2026-08-17T17:58:00Z | AnshX | Added Codex as MAIN (BUILD); AnshX stays QA (TEST); STATUS BUILD | Codex is now the main agent |
 | 2026-08-17T18:00:00Z | Anshux | Renamed main agent to Anshux (Cursor); added Claude Code as co-architect; Codex is helper | STATUS BUILD |
 | 2026-08-17T18:02:00Z | Cursor | Installed ANSHUX system: Claude Code = main implementer, Codex = sub, Cursor = PLAN/TEST | STATUS BUILD |
+| 2026-08-17T18:05:00Z | Cursor | Assigned Codex SUB-2: inventory + defensive security of Semicolon and Cosmos sites | SUB-2 OPEN |

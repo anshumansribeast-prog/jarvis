@@ -21,7 +21,11 @@ When this file exists and pytest still passes on Linux, Main is done.
 
 ## Sub spec (Codex)
 
-See `anshux/SUBTASKS.md`. Codex owns `tests/test_system_controller.py` only.
+**Do SUB-2 first** — inventory and defensive security review of **all Semicolon and Cosmos public sites**. Write `anshux/SITE_SECURITY_REPORT.md`. Full brief in `anshux/SUBTASKS.md`.
+
+SUB-1 (`tests/test_system_controller.py`) stays open for after SUB-2.
+
+No exploits or attack PoCs. Headers, HTTPS, public JS, stale URLs, and hardening only.
 
 ## Last test run (Cursor)
 
