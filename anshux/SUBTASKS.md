@@ -1,6 +1,8 @@
 # ANSHUX subtasks — Codex only
 
-STATUS of parent board: see `AGENT_TASK.md` (`BUILD` / `TEST` / `STOP`).
+**If Codex says there are no sites:** you opened the empty daily role-folder (`Documents\Codex\...\work`), not this git repo. Open **jarvis / ANSHUX**, or paste `CODEX_INBOX.md` + `anshux/codex/work/ASSIGNMENT.md`. Sites are URLs (semicolon.punah.pro, cosmos.punah.pro), not files in `work/`. If network is denied, the assignment already contains Cursor’s HTTP probe table — write the report from that. Do not stay idle.
+
+STATUS of parent board: see `AGENT_TASK.md`.
 
 Codex implements **open** rows. Do not edit Claude Code’s Main spec files.
 

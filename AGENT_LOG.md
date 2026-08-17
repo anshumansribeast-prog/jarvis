@@ -24,3 +24,5 @@ Legacy rows used AnshX / Anshux as a single agent name.
 | 2026-08-17T18:00:00Z | Anshux | Renamed main agent to Anshux (Cursor); added Claude Code as co-architect; Codex is helper | STATUS BUILD |
 | 2026-08-17T18:02:00Z | Cursor | Installed ANSHUX system: Claude Code = main implementer, Codex = sub, Cursor = PLAN/TEST | STATUS BUILD |
 | 2026-08-17T18:05:00Z | Cursor | Assigned Codex SUB-2: inventory + defensive security of Semicolon and Cosmos sites | SUB-2 OPEN |
+| 2026-08-17T18:07:00Z | Codex | Looked in empty Codex role-folder `work/` / `outputs/` (0 files); no AGENT_TASK.md; no network | BLOCKED — wrong workspace |
+| 2026-08-17T18:08:00Z | Cursor | Logged Codex block; added `CODEX_INBOX.md` + `anshux/codex/work/ASSIGNMENT.md` with live URLs and probe table | Unblocked if Codex opens jarvis repo or pastes inbox |

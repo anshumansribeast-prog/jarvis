@@ -21,7 +21,9 @@ When this file exists and pytest still passes on Linux, Main is done.
 
 ## Sub spec (Codex)
 
-**Do SUB-2 first** — inventory and defensive security review of **all Semicolon and Cosmos public sites**. Write `anshux/SITE_SECURITY_REPORT.md`. Full brief in `anshux/SUBTASKS.md`.
+**Do SUB-2 first.** Read `CODEX_INBOX.md` then `anshux/codex/work/ASSIGNMENT.md`.
+
+Write `anshux/codex/outputs/SITE_SECURITY_REPORT.md` (Semicolon + Cosmos, all listed URLs). If Codex is not in this repo, paste those two files into Codex — do not use the empty `Documents\Codex\...\role-*\work` folder.
 
 SUB-1 (`tests/test_system_controller.py`) stays open for after SUB-2.
 
