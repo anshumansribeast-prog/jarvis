@@ -1,32 +1,28 @@
 # AGENTS.md
 
-Team name: **Anshux**. Control files: `AGENT_TASK.md`, `AGENT_LOG.md`.
+**ANSHUX** project. Cursor orchestrates. Claude Code is the main implementer. Codex is the sub implementer.
 
-## Anshux (main) — Cursor
+Read `ANSHUX.md` for the loop. Live work lives in `AGENT_TASK.md`.
 
-Main agent. Runs in Cursor (Cloud or desktop). Owns this repo’s TEST/BUILD loop.
+## Cursor (orchestrator)
 
-- Read `AGENT_TASK.md` first.
-- On `STATUS: BUILD`: implement the spec (or hand it to Claude Code), log as **Anshux**, then set `STATUS: TEST`.
-- On `STATUS: TEST`: run `python -m pytest -q` (or the project venv). FAIL → `STATUS: BUILD` with errors. PASS → next spec and `STATUS: BUILD`, or `STATUS: STOP`.
-- On `STATUS: STOP`: do nothing.
+- `STATUS: PLAN` or empty spec: write Main (Claude Code) and Sub (Codex) work, set `STATUS: BUILD`.
+- `STATUS: TEST`: run `python -m pytest -q`. Fail → `STATUS: BUILD` with errors. Pass → next PLAN or `STATUS: STOP`.
+- `STATUS: BUILD`: do **not** implement unless both Claude Code and Codex are unavailable. Assign only.
+- Log as **Cursor**.
 
-## Claude Code
+## Claude Code (main implementer)
 
-Co-architect. Same BUILD rights as Anshux; not the main agent.
-
-- Act on `STATUS: BUILD` when Anshux has not already claimed the spec.
-- Implement the current BUILD specification.
+- Act when `STATUS: BUILD`.
+- Implement **Main spec** in `AGENT_TASK.md` only. Do not take Codex subtasks unless `anshux/SUBTASKS.md` says they are unblocked and idle.
 - Log as **Claude Code**.
-- Set `STATUS: TEST` when done so Anshux can run QA.
-- On `STATUS: STOP`: do nothing.
+- When Main is done, if subtasks are still open, leave `STATUS: BUILD` and note that in `AGENT_TASK.md`. When Main and Sub are done, set `STATUS: TEST`.
+- `STATUS: STOP`: do nothing.
 
-Jarvis can launch Claude Code on Windows (`wt.exe` + `claude`) for interactive coding. That launch does not send commands; Anshuman types them.
+## Codex (sub implementer)
 
-## Codex
-
-Co-architect helper. Not main.
-
-- Act on `STATUS: BUILD` only if Anshux and Claude Code are not already implementing.
-- Log as **Codex**.
-- Set `STATUS: TEST` when done.
+- Act when `STATUS: BUILD` **and** `anshux/SUBTASKS.md` has open items.
+- Implement only those subtasks. Never rewrite the Main spec or take Claude Code’s files unless a subtask names them.
+- Mark each subtask done in `anshux/SUBTASKS.md`. Log as **Codex**.
+- Do not set `STATUS: TEST` (Claude Code or Cursor does that after Main is done).
+- `STATUS: STOP`: do nothing.

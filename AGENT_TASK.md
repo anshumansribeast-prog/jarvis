@@ -1,33 +1,29 @@
 # AGENT_TASK
 
-MAIN AGENT: Anshux
-RUNTIME: Cursor
-CO-AGENTS: Claude Code, Codex
-
+PROJECT: ANSHUX
 STATUS: BUILD
 
-## Roles
+ORCHESTRATOR: Cursor
+MAIN IMPLEMENTER: Claude Code
+SUB IMPLEMENTER: Codex
 
-| Agent | Runtime | Role | When to act |
-| --- | --- | --- | --- |
-| **Anshux** (main) | Cursor | Lead Architect + QA owner | Always the default. On `BUILD`, implement (or assign Claude Code). On `TEST`, run pytest. |
-| **Claude Code** | Claude Code CLI / Windows Terminal | Co-architect | `STATUS: BUILD` — implement the spec, log as Claude Code, then set `STATUS: TEST` for Anshux |
-| **Codex** | OpenAI Codex | Co-architect (not main) | `STATUS: BUILD` only if Anshux or Claude Code is not already implementing |
+## Main spec (Claude Code)
 
-Anshux is the name of the main agent. Cursor is how Anshux runs. Claude Code is also on the team and may implement BUILD work. Codex is a helper, not the main agent.
+Add Linux-safe tests that document Windows window control, skipped on non-Windows:
 
-Halt only when `STATUS: STOP`. Do not request manual verification.
+- File: `tests/test_window_controller.py`
+- `pytest.mark.skipif(sys.platform != "win32", reason="pywin32 / desktop session")`
+- Cover: `minimize_active_window`, `maximize_active_window`, `restore_active_window`, `show_desktop`, `switch_to` (found vs missing title)
+- Mock `win32gui` / `win32api` so the module can be imported; on `win32` the skip is not used and mocks still isolate the desktop
+- Do not break the existing 36 Linux tests
 
-## Current objective (Anshux / Claude Code)
+When this file exists and pytest still passes on Linux, Main is done.
 
-Windows-only integration tests for `window_controller` (minimize / maximize / restore / switch_to / show_desktop) and `system_controller` (volume keys, screenshot via ImageGrab). Those modules need pywin32 and a real desktop session.
+## Sub spec (Codex)
 
-If this environment is Linux (no pywin32 / no desktop), skip live window/system calls: add `pytest.mark.skipif(sys.platform != "win32")` tests that document the intended behavior, keep the existing 36 Linux tests green, then set `STATUS: TEST`.
+See `anshux/SUBTASKS.md`. Codex owns `tests/test_system_controller.py` only.
 
-## Last test run
+## Last test run (Cursor)
 
-- Agent: Anshux (legacy log name AnshX)
-- Command: `/tmp/jarvis-test-venv/bin/python -m pytest -v --tb=short`
-- Result: PASS
-- Timestamp: 2026-08-17T17:57:00Z
-- Counts: 36 passed in 0.17s
+- PASS — 36 tests — 2026-08-17T17:57:00Z
+- `/tmp/jarvis-test-venv/bin/python -m pytest -v --tb=short`

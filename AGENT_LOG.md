@@ -1,6 +1,8 @@
 # AGENT_LOG
 
-**Anshux** (main, Cursor) · Claude Code (co-architect) · Codex (helper). Legacy rows used the name AnshX.
+**ANSHUX** — Cursor (orchestrator) · Claude Code (main implementer) · Codex (sub implementer).
+
+Legacy rows used AnshX / Anshux as a single agent name.
 
 | Timestamp (UTC) | Agent | Action | Result |
 | --- | --- | --- | --- |
@@ -20,3 +22,4 @@
 | 2026-08-17T17:57:30Z | AnshX | Recorded Windows-only backlog; set STATUS STOP | Loop halted |
 | 2026-08-17T17:58:00Z | AnshX | Added Codex as MAIN (BUILD); AnshX stays QA (TEST); STATUS BUILD | Codex is now the main agent |
 | 2026-08-17T18:00:00Z | Anshux | Renamed main agent to Anshux (Cursor); added Claude Code as co-architect; Codex is helper | STATUS BUILD |
+| 2026-08-17T18:02:00Z | Cursor | Installed ANSHUX system: Claude Code = main implementer, Codex = sub, Cursor = PLAN/TEST | STATUS BUILD |
