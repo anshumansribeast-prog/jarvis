@@ -1,6 +1,6 @@
-# AGENT_LOG — AnshX
+# AGENT_LOG
 
-Lead Architect & Automated QA Tester. Loop: TEST → evaluate → BUILD spec (or STOP).
+Codex (main, BUILD) and AnshX (QA, TEST).
 
 | Timestamp (UTC) | Agent | Action | Result |
 | --- | --- | --- | --- |
@@ -18,3 +18,4 @@ Lead Architect & Automated QA Tester. Loop: TEST → evaluate → BUILD spec (or
 | 2026-08-17T17:56:30Z | AnshX | Resolve find() root at call time | BUILD |
 | 2026-08-17T17:57:00Z | AnshX | Re-ran pytest -v | PASS 36 tests in 0.17s |
 | 2026-08-17T17:57:30Z | AnshX | Recorded Windows-only backlog; set STATUS STOP | Loop halted |
+| 2026-08-17T17:58:00Z | AnshX | Added Codex as MAIN (BUILD); AnshX stays QA (TEST); STATUS BUILD | Codex is now the main agent |
