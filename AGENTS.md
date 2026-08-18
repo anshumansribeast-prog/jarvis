@@ -1,28 +1,25 @@
 # AGENTS.md
 
-**ANSHUX** project. Cursor orchestrates. Claude Code is the main implementer. Codex is the sub implementer.
+**ANSHUX** — two mains (Cursor, Codex) plus three knowledge chats (Claude, ChatGPT, Gemini). No Claude Code.
 
-Read `ANSHUX.md` for the loop. Live work lives in `AGENT_TASK.md`.
+Live board: `AGENT_TASK.md`. Subtasks: `anshux/SUBTASKS.md`. Knowledge prompts: `anshux/knowledge/`.
 
-## Cursor (orchestrator)
+## Cursor (main)
 
-- `STATUS: PLAN` or empty spec: write Main (Claude Code) and Sub (Codex) work, set `STATUS: BUILD`.
-- `STATUS: TEST`: run `python -m pytest -q`. Fail → `STATUS: BUILD` with errors. Pass → next PLAN or `STATUS: STOP`.
-- `STATUS: BUILD`: do **not** implement unless both Claude Code and Codex are unavailable. Assign only.
-- Log as **Cursor**.
+Plan, implement, test, site checks. Log as **Cursor**.
 
-## Claude Code (main implementer)
+## Codex (main)
 
-- Act when `STATUS: BUILD`.
-- Implement **Main spec** in `AGENT_TASK.md` only. Do not take Codex subtasks unless `anshux/SUBTASKS.md` says they are unblocked and idle.
-- Log as **Claude Code**.
-- When Main is done, if subtasks are still open, leave `STATUS: BUILD` and note that in `AGENT_TASK.md`. When Main and Sub are done, set `STATUS: TEST`.
-- `STATUS: STOP`: do nothing.
+Same rights as Cursor. If this session is the empty `Documents\Codex\...\` role folder, copy `anshux/codex-role\*` into it first. Log as **Codex**.
 
-## Codex (sub implementer)
+## Claude (knowledge)
 
-- Act when `STATUS: BUILD` **and** `anshux/SUBTASKS.md` has open items.
-- Implement only those subtasks. Never rewrite the Main spec or take Claude Code’s files unless a subtask names them.
-- Mark each subtask done in `anshux/SUBTASKS.md`. Log as **Codex**.
-- Do not set `STATUS: TEST` (Claude Code or Cursor does that after Main is done).
-- `STATUS: STOP`: do nothing.
+Normal Claude chat — not Claude Code. Read `anshux/knowledge/CLAUDE.md`. Answers and drafts only unless a main asks for a review comment.
+
+## ChatGPT (knowledge)
+
+Read `anshux/knowledge/CHATGPT.md`. General Q&A and drafts.
+
+## Gemini (knowledge)
+
+Read `anshux/knowledge/GEMINI.md`. Research-style answers and long-doc summaries.

@@ -3,9 +3,13 @@
 PROJECT: ANSHUX
 STATUS: REVIEW
 
-ORCHESTRATOR: Cursor
-MAIN IMPLEMENTER: Claude Code
-SUB IMPLEMENTER: Codex
+MAINS: Cursor, Codex
+KNOWLEDGE: Claude, ChatGPT, Gemini
+REMOVED: Claude Code
+
+## Codex job (now)
+
+Read `.\work\` and `../SITE_SECURITY_REPORT.md` if this is the git repo, or write `.\outputs\SITE_SECURITY_REPORT.md` in the role folder. Same defensive rules. You are a **main**, not a sub.
 
 Codex: you are in the role folder. **Do not idle.** `.\work\` is seeded. There are sites to review as files.
 

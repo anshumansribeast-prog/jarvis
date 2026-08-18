@@ -2,35 +2,37 @@
 
 Project name: **ANSHUX**
 
-Jarvis (the voice assistant in this repo) is the product. **ANSHUX** is the agent system that builds and tests it.
+Jarvis is the voice-assistant product in this repo. **ANSHUX** is the agent team around it.
+
+There is **no Claude Code** agent. “Claude” means normal Claude (claude.ai / Claude chat), not the terminal CLI.
 
 ```
-                 ┌─────────────┐
-                 │   ANSHUX    │
-                 │  (project)  │
-                 └──────┬──────┘
-          ┌─────────────┼─────────────┐
-          ▼             ▼             ▼
-     Cursor         Claude Code      Codex
-   orchestrator    MAIN implementer  SUB implementer
-   PLAN + TEST         BUILD            SUBTASKS
+                    ANSHUX
+                      │
+        ┌─────────────┴─────────────┐
+        │         MAINS              │         KNOWLEDGE (chat only)
+        ▼                           ▼              ▼
+     Cursor                       Codex      Claude · ChatGPT · Gemini
+     plan, code, test             code, review, sites     answers / drafts
 ```
+
+## Mains
+
+**Cursor** and **Codex** are both main. Either may PLAN, BUILD, TEST, or check Semicolon/Cosmos. Log as **Cursor** or **Codex**.
+
+## Knowledge (not mains)
+
+**Claude**, **ChatGPT**, and **Gemini** answer questions and draft text. They do not own `STATUS`, do not merge code, and do not run pytest unless a main pastes a question to them.
+
+## Subtasks
+
+`anshux/SUBTASKS.md` is a list, not a third agent. Mains pick rows. Knowledge agents may comment; they do not mark rows DONE.
 
 ## Loop
 
-1. **PLAN** — Cursor writes the spec in `AGENT_TASK.md`, splits **Main** vs **Sub**, sets `STATUS: BUILD`.
-2. **BUILD** — Claude Code implements the Main spec. Codex implements only items in `anshux/SUBTASKS.md`. When both are done, Claude Code sets `STATUS: TEST`.
-3. **TEST** — Cursor runs pytest. Fail → `BUILD` with logs. Pass → next PLAN or `STOP`.
-4. **STOP** — nobody acts.
+1. PLAN — a main writes `AGENT_TASK.md`, sets `STATUS: BUILD` or `REVIEW`.
+2. BUILD / REVIEW — Cursor and/or Codex do the work.
+3. TEST — Cursor or Codex runs pytest. Fail → BUILD. Pass → next PLAN or STOP.
+4. STOP — nobody acts.
 
-Do not request manual verification. Log every action in `AGENT_LOG.md` with the agent name.
-
-## Who does what
-
-| Role | Agent | Files to read first |
-| --- | --- | --- |
-| Orchestrator | Cursor | `AGENT_TASK.md`, then `AGENTS.md` |
-| Main implementer | Claude Code | `CLAUDE.md`, then `AGENT_TASK.md` |
-| Sub implementer | Codex | `anshux/SUBTASKS.md`, then `AGENT_TASK.md` |
-
-Claude Code never waits for Codex if the Main spec can ship alone. Codex never takes Main work. Cursor does not implement BUILD while Claude Code is the assigned main implementer.
+Do not request manual verification.

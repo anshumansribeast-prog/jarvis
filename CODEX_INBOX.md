@@ -1,4 +1,7 @@
-# Codex: copy anshux/codex-role into your Documents\Codex\...\ role folder
+# Codex inbox (main, with Cursor)
 
-Your session only sees `.\work` and `.\outputs` next to `.\AGENT_TASK.md`.
-This git repo is not that folder. Seed it using `anshux/codex-role/README.md`.
+Claude Code is not an ANSHUX agent. Knowledge chats: Claude, ChatGPT, Gemini.
+
+If you are in empty `Documents\Codex\...\work`, copy `anshux/codex-role\*` into that folder.
+
+Site review already started: `anshux/SITE_SECURITY_REPORT.md`. Add extra findings there; do not idle.

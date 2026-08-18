@@ -1,35 +1,26 @@
 # AGENT_TASK
 
 PROJECT: ANSHUX
-STATUS: BUILD
+STATUS: REVIEW
 
-Codex local session is separate. To make Codex run, copy `anshux/codex-role\*` into `C:\Users\Anshu\Documents\Codex\2026-08-17\<role-folder>\` so that folder has `AGENT_TASK.md` (`STATUS: REVIEW`), `AGENT_LOG.md`, `README.md`, and `work\` HTML. See `anshux/codex-role/README.md`.
+MAINS: Cursor, Codex
+KNOWLEDGE: Claude, ChatGPT, Gemini
+REMOVED: Claude Code (not an ANSHUX agent)
 
-ORCHESTRATOR: Cursor
-MAIN IMPLEMENTER: Claude Code
-SUB IMPLEMENTER: Codex
+## Now (mains)
 
-## Main spec (Claude Code)
+Defensive review of Semicolon and Cosmos. Report: `anshux/SITE_SECURITY_REPORT.md` (Cursor filling this from live probes because Codex’s role folder had no files).
 
-Add Linux-safe tests that document Windows window control, skipped on non-Windows:
+Codex may still copy `anshux/codex-role\*` into `Documents\Codex\2026-08-17\<role>\` and add findings to the same report.
 
-- File: `tests/test_window_controller.py`
-- `pytest.mark.skipif(sys.platform != "win32", reason="pywin32 / desktop session")`
-- Cover: `minimize_active_window`, `maximize_active_window`, `restore_active_window`, `show_desktop`, `switch_to` (found vs missing title)
-- Mock `win32gui` / `win32api` so the module can be imported; on `win32` the skip is not used and mocks still isolate the desktop
-- Do not break the existing 36 Linux tests
+## Knowledge
 
-When this file exists and pytest still passes on Linux, Main is done.
+Ask Claude / ChatGPT / Gemini only for explanations or draft wording. They do not change STATUS.
 
-## Sub spec (Codex)
+## Later (optional)
 
-Codex only sees its Documents\Codex role folder. **Copy `anshux/codex-role\*` into that folder** (see `anshux/codex-role/README.md`). Then Codex has `STATUS: REVIEW`, `work\` HTML for Semicolon/Cosmos, and must write `outputs\SITE_SECURITY_REPORT.md`.
+Windows skipif tests: `tests/test_window_controller.py`, `tests/test_system_controller.py`.
 
-SUB-1 (`tests/test_system_controller.py`) stays open for after SUB-2.
+## Last pytest (Cursor)
 
-No exploits or attack PoCs. Headers, HTTPS, public JS, stale URLs, and hardening only.
-
-## Last test run (Cursor)
-
-- PASS — 36 tests — 2026-08-17T17:57:00Z
-- `/tmp/jarvis-test-venv/bin/python -m pytest -v --tb=short`
+PASS — 36 tests — 2026-08-17T17:57:00Z

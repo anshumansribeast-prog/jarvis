@@ -1,8 +1,6 @@
 # AGENT_LOG
 
-**ANSHUX** — Cursor (orchestrator) · Claude Code (main implementer) · Codex (sub implementer).
-
-Legacy rows used AnshX / Anshux as a single agent name.
+**ANSHUX** mains: Cursor, Codex. Knowledge: Claude, ChatGPT, Gemini. Claude Code removed.
 
 | Timestamp (UTC) | Agent | Action | Result |
 | --- | --- | --- | --- |
@@ -28,3 +26,5 @@ Legacy rows used AnshX / Anshux as a single agent name.
 | 2026-08-17T18:08:00Z | Cursor | Logged Codex block; added `CODEX_INBOX.md` + `anshux/codex/work/ASSIGNMENT.md` with live URLs and probe table | Unblocked if Codex opens jarvis repo or pastes inbox |
 | 2026-08-17T18:09:00Z | Codex | Rechecked empty role work/outputs; no AGENT_TASK.md / AGENT_LOG.md / README.md | Still BLOCKED |
 | 2026-08-17T18:11:00Z | Cursor | Built `anshux/codex-role/` with STATUS: REVIEW, README, AGENT_TASK, AGENT_LOG, seeded work/ HTML | Copy that folder into the Codex role directory |
+| 2026-08-18T11:43:00Z | Cursor | Removed Claude Code; mains = Cursor + Codex; knowledge = Claude, ChatGPT, Gemini | Protocol updated |
+| 2026-08-18T11:44:00Z | Cursor | Defensive Semicolon/Cosmos review written to `anshux/SITE_SECURITY_REPORT.md` | SUB-2 in progress / report exists |
