@@ -28,4 +28,5 @@
 | 2026-08-17T18:11:00Z | Cursor | Built `anshux/codex-role/` with STATUS: REVIEW, README, AGENT_TASK, AGENT_LOG, seeded work/ HTML | Copy that folder into the Codex role directory |
 | 2026-08-18T11:43:00Z | Cursor | Removed Claude Code; mains = Cursor + Codex; knowledge = Claude, ChatGPT, Gemini | Protocol updated |
 | 2026-08-18T11:44:00Z | Cursor | Defensive Semicolon/Cosmos review written to `anshux/SITE_SECURITY_REPORT.md` | SUB-2 in progress / report exists |
-| 2026-08-18T11:50:00Z | Cursor | Ada+Beast knowledge brains; STATUS LOOP until STOP; generator patch for Semicolon; Jarvis backend URL /back | Codex must keep working |
+| 2026-08-18T12:00:00Z | Cursor | Live check: generator 200, practice still has Generate, Ada mobile too small | SITE_CHECK.md |
+| 2026-08-18T12:01:00Z | Cursor | Patch+Codex command: simple Semicolon, drop generator, fix mobile Ada | CODEX_COMMAND.md |

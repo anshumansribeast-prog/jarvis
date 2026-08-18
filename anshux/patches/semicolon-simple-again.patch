@@ -1,7 +1,7 @@
 From c41118d7d3ca0e4fbeb755580bfc65bbb569a32a Mon Sep 17 00:00:00 2001
 From: Cursor Agent <cursoragent@cursor.com>
 Date: Tue, 18 Aug 2026 11:49:38 +0000
-Subject: [PATCH] Remove Code Generator and restore Ada-first Semicolon nav
+Subject: [PATCH 1/2] Remove Code Generator and restore Ada-first Semicolon nav
 
 Drop generate.html and the Practice Run-generated tab so the public site matches the pre-generator layout: tracks, practice, Ada. Ada chat stays.
 ---
@@ -987,6 +987,95 @@ index 806943f..1ac2c6b 100644
    <url><loc>https://semicolon.punah.pro/pages/projects.html</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
    <url><loc>https://semicolon.punah.pro/pages/ada.html</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
  
+-- 
+2.43.0
+
+
+From 70872d0fd9ad49fcdf0fd7cd7fd0c37ca8b38392 Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursoragent@cursor.com>
+Date: Tue, 18 Aug 2026 11:59:27 +0000
+Subject: [PATCH 2/2] Make Ada chat usable on phones
+
+Give the composer the bottom of the screen, 16px type, and a tall textarea. Hide the side rail and chips on small screens so the log no longer eats the keyboard.
+---
+ css/style.css  | 36 ++++++++++++++++++++++++++++++++++--
+ index.html     |  2 +-
+ pages/ada.html |  2 +-
+ 3 files changed, 36 insertions(+), 4 deletions(-)
+
+diff --git a/css/style.css b/css/style.css
+index 09de1cb..17aa9a3 100644
+--- a/css/style.css
++++ b/css/style.css
+@@ -1823,8 +1823,40 @@ select.control:focus { outline: none; border-color: var(--primary); box-shadow:
+ 
+ @media (max-width: 860px) {
+   .ada-layout { grid-template-columns: 1fr; }
+-  .ada-shell { min-height: 70vh; }
+-  .ada-log { max-height: none; min-height: 42vh; }
++  .ada-rail { display: none; }
++  .ada-chips { display: none; }
++  .ada-page { padding-bottom: 0; }
++  .ada-shell {
++    min-height: 100dvh;
++    min-height: 100vh;
++    border-radius: 0;
++  }
++  .ada-log {
++    flex: 1 1 auto;
++    min-height: 0;
++    max-height: none;
++  }
++  .ada-form {
++    flex-direction: column;
++    align-items: stretch;
++    position: sticky;
++    bottom: 0;
++    background: var(--bg);
++    padding: .85rem 1rem calc(.85rem + env(safe-area-inset-bottom));
++  }
++  .ada-form textarea {
++    width: 100%;
++    min-height: 7.5rem;
++    font-size: 16px; /* iOS will not zoom if >= 16px */
++    line-height: 1.45;
++  }
++  .ada-form-actions {
++    width: 100%;
++  }
++  .ada-form-actions .btn {
++    min-height: 44px;
++    flex: 1 1 auto;
++  }
+ }
+ 
+ /* ---------- HOW CODE RUNS + CONCEPTS GUIDE ------------------------- */
+diff --git a/index.html b/index.html
+index eb7e0a4..928f9e1 100644
+--- a/index.html
++++ b/index.html
+@@ -20,7 +20,7 @@
+   <meta name="twitter:image" content="https://semicolon.punah.pro/img/og.jpg">
+ 
+   <link rel="canonical" href="https://semicolon.punah.pro/">
+-  <link rel="stylesheet" href="css/style.css?v=20260816i">
++  <link rel="stylesheet" href="css/style.css?v=20260818a">
+   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%234f46e5'/><text x='16' y='23' font-size='22' font-family='monospace' fill='white' text-anchor='middle'>;</text></svg>">
+ </head>
+ <body>
+diff --git a/pages/ada.html b/pages/ada.html
+index 1b6680f..06fa4eb 100644
+--- a/pages/ada.html
++++ b/pages/ada.html
+@@ -5,7 +5,7 @@
+   <meta name="viewport" content="width=device-width, initial-scale=1">
+   <title>Ada — Semicolon</title>
+   <meta name="description" content="Ask Ada, Semicolon's coding tutor, when you're stuck. It explains and nudges you toward the answer instead of just handing it over.">
+-  <link rel="stylesheet" href="../css/style.css?v=20260816i">
++  <link rel="stylesheet" href="../css/style.css?v=20260818a">
+   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" crossorigin="anonymous">
+   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231d4ed8'/><text x='16' y='23' font-size='22' font-family='monospace' fill='white' text-anchor='middle'>;</text></svg>">
+ </head>
 -- 
 2.43.0
 

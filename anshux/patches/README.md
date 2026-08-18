@@ -1,8 +1,12 @@
-# Apply on the Semicolon repo (this cloud agent cannot push there)
+# Apply Semicolon “simple again” (Generator gone + mobile Ada)
 
-```bash
+This agent cannot push `anshumansribeast-prog/semicolon`.
+
+**Codex** (on the laptop, in `C:\Users\Anshu\semicolon`):
+
+See `anshux/CODEX_COMMAND.md`.
+
+```powershell
 cd C:\Users\Anshu\semicolon
-git apply path\to\jarvis\anshux\patches\semicolon-remove-generator.patch
+git apply C:\Users\Anshu\jarvis\anshux\patches\semicolon-simple-again.patch
 ```
-
-Or copy the patch from GitHub `anshux/patches/semicolon-remove-generator.patch`.
