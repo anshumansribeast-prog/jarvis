@@ -3,6 +3,10 @@ import os
 import jarvis
 
 
+def test_backend_site_uses_live_back_path():
+    assert jarvis.SITES["backend"].rstrip("/") == "https://cosmos.punah.pro/back"
+
+
 def test_looks_related_shares_meaningful_word():
     assert jarvis._looks_related("how many moons does Jupiter have", "Jupiter")
 

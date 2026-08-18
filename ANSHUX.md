@@ -1,38 +1,29 @@
 # ANSHUX
 
-Project name: **ANSHUX**
+Project: **ANSHUX**. Product: Jarvis. Semicolon / Cosmos are sister sites.
 
-Jarvis is the voice-assistant product in this repo. **ANSHUX** is the agent team around it.
+## Mains (loop until STOP)
 
-There is **no Claude Code** agent. “Claude” means normal Claude (claude.ai / Claude chat), not the terminal CLI.
+**Cursor** and **Codex** are both main. While `AGENT_TASK.md` is not `STATUS: STOP`, they keep working: next open subtask, site check, tests, log, repeat. Only **Anshuman** setting `STATUS: STOP` ends the loop.
 
-```
-                    ANSHUX
-                      │
-        ┌─────────────┴─────────────┐
-        │         MAINS              │         KNOWLEDGE (chat only)
-        ▼                           ▼              ▼
-     Cursor                       Codex      Claude · ChatGPT · Gemini
-     plan, code, test             code, review, sites     answers / drafts
-```
+## Knowledge sub-agencies (brains)
 
-## Mains
+| Agency | Brain for | File |
+| --- | --- | --- |
+| **Ada** | Semicolon | `anshux/knowledge/ADA.md` |
+| **Beast** | Cosmos | `anshux/knowledge/BEAST.md` |
 
-**Cursor** and **Codex** are both main. Either may PLAN, BUILD, TEST, or check Semicolon/Cosmos. Log as **Cursor** or **Codex**.
+Ada and Beast do not own STATUS. Mains ask them for site/domain answers.
 
-## Knowledge (not mains)
-
-**Claude**, **ChatGPT**, and **Gemini** answer questions and draft text. They do not own `STATUS`, do not merge code, and do not run pytest unless a main pastes a question to them.
+Optional extra chats: Claude, ChatGPT, Gemini (`anshux/knowledge/`). **Not Claude Code.**
 
 ## Subtasks
 
-`anshux/SUBTASKS.md` is a list, not a third agent. Mains pick rows. Knowledge agents may comment; they do not mark rows DONE.
+`anshux/SUBTASKS.md` — a list. Mains pick rows. Not a third implementer.
 
 ## Loop
 
-1. PLAN — a main writes `AGENT_TASK.md`, sets `STATUS: BUILD` or `REVIEW`.
-2. BUILD / REVIEW — Cursor and/or Codex do the work.
-3. TEST — Cursor or Codex runs pytest. Fail → BUILD. Pass → next PLAN or STOP.
-4. STOP — nobody acts.
-
-Do not request manual verification.
+1. Read `AGENT_TASK.md`. If `STOP`, halt.
+2. Do open work (sites, bugs, subtasks).
+3. Log in `AGENT_LOG.md`.
+4. Leave STATUS as `LOOP` (or `BUILD` / `REVIEW`) until Anshuman writes `STOP`.

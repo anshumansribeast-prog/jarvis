@@ -63,7 +63,7 @@ SITES = {
     # cosmos.punah.pro is the actual live site now, not its netlify copy.
     "semicolon": "https://semicolon.punah.pro",
     "cosmos": "https://cosmos.punah.pro",
-    "backend": "https://cosmos.punah.pro/backend.html",
+    "backend": "https://cosmos.punah.pro/back",
     "music": "https://music.youtube.com",
 }
 

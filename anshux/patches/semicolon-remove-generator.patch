@@ -1,0 +1,992 @@
+From c41118d7d3ca0e4fbeb755580bfc65bbb569a32a Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursoragent@cursor.com>
+Date: Tue, 18 Aug 2026 11:49:38 +0000
+Subject: [PATCH] Remove Code Generator and restore Ada-first Semicolon nav
+
+Drop generate.html and the Practice Run-generated tab so the public site matches the pre-generator layout: tracks, practice, Ada. Ada chat stays.
+---
+ ada_server.py         |   2 +-
+ index.html            |  16 +-
+ js/generate.js        | 397 ------------------------------------------
+ pages/about.html      |   3 +-
+ pages/ada.html        |   5 +-
+ pages/blog.html       |   3 +-
+ pages/concepts.html   |   3 +-
+ pages/contact.html    |   3 +-
+ pages/generate.html   | 215 -----------------------
+ pages/learn.html      |   3 +-
+ pages/lesson.html     |   3 +-
+ pages/playground.html |  62 +------
+ pages/post.html       |   3 +-
+ pages/projects.html   |  12 +-
+ sitemap.xml           |   1 -
+ 15 files changed, 22 insertions(+), 709 deletions(-)
+ delete mode 100644 js/generate.js
+ delete mode 100644 pages/generate.html
+
+diff --git a/ada_server.py b/ada_server.py
+index d3c8097..0ac4159 100644
+--- a/ada_server.py
++++ b/ada_server.py
+@@ -325,7 +325,7 @@ def fallback_tutor(message, history):
+     if last:
+         bits.append("I still have our thread. Last thing I had:\n%s" % last)
+     bits.append(
+-        "Ask again in a moment, or open the Code Generator and describe any topic — files will appear in the editor."
++        "Ask again in a moment, or keep chatting with Ada on this page."
+     )
+     return "\n\n".join(bits)
+ 
+diff --git a/index.html b/index.html
+index 2ea9ca1..eb7e0a4 100644
+--- a/index.html
++++ b/index.html
+@@ -50,8 +50,7 @@
+       </li>
+       <li><a class="nav-link" href="pages/concepts.html">Concepts</a></li>
+       <li><a class="nav-link" href="pages/playground.html">Practice</a></li>
+-      <li><a class="nav-link" href="pages/generate.html">Generator</a></li>
+-      <li><a class="nav-link" href="pages/projects.html">Projects</a></li>
++<li><a class="nav-link" href="pages/projects.html">Projects</a></li>
+       <li><a class="nav-link" href="pages/ada.html">Ada</a></li>
+       <li><a class="nav-link" href="pages/blog.html">Blog</a></li>
+       <li><a class="nav-link" href="pages/about.html">About</a></li>
+@@ -76,15 +75,14 @@
+         <h1>Learn. Code. <em>Build.</em></h1>
+         <p class="lede">
+           Semicolon is a coding school: tracks, practice, and projects.
+-          Ada is a real chat inside it — ask anything, generate code for any topic.
++          Ada is a real chat inside it — ask when you are stuck.
+         </p>
+         <div class="btn-row">
+           <a class="btn btn--primary" href="pages/learn.html">
+             Browse the tracks
+             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+           </a>
+-          <a class="btn btn--ghost" href="pages/generate.html">Code Generator</a>
+-        </div>
++</div>
+ 
+         <div class="hero-stats">
+           <div><span class="n">10</span><span class="l">Learning tracks</span></div>
+@@ -133,11 +131,6 @@
+         <h3>Git</h3>
+         <p>Save every version.</p>
+       </a>
+-      <a class="shot-card" href="pages/generate.html">
+-        <img src="img/web.jpg" width="800" height="600" alt="A colourful web browser">
+-        <h3>Generator</h3>
+-        <p>Describe it. Ada writes the files.</p>
+-      </a>
+       <a class="shot-card" href="pages/ada.html">
+         <img src="img/ada.jpg" width="800" height="800" alt="Ada the coding tutor">
+         <h3>Ada</h3>
+@@ -413,8 +406,7 @@
+           <li><a href="pages/blog.html">Blog</a></li>
+           <li><a href="pages/contact.html">Contact</a></li>
+           <li><a href="pages/concepts.html">Concepts</a></li>
+-          <li><a href="pages/generate.html">Code Generator</a></li>
+-          <li><a href="pages/playground.html">Practice</a></li>
++<li><a href="pages/playground.html">Practice</a></li>
+           <li><a href="pages/learn.html">All tracks</a></li>
+         </ul>
+       </div>
+diff --git a/js/generate.js b/js/generate.js
+deleted file mode 100644
+index 895b7eb..0000000
+--- a/js/generate.js
++++ /dev/null
+@@ -1,397 +0,0 @@
+-/* Semicolon Code Generator — same Ada backend as chat. */
+-(function () {
+-  "use strict";
+-  if (!document.getElementById("genForm")) return;
+-  var api = window.AdaAPI;
+-  var buildLocal = window.SemiGen && window.SemiGen.build;
+-
+-  var files = [];
+-  var current = 0;
+-  var lastPrompt = "";
+-  var abort = null;
+-  var pendingApply = "";
+-  var genHistory = [];
+-  var editor = document.getElementById("genEditor");
+-  var tree = document.getElementById("genTree");
+-  var nameEl = document.getElementById("genFileName");
+-  var work = document.getElementById("genWork");
+-  var preview = document.getElementById("genPreview");
+-  var note = document.getElementById("genPreviewNote");
+-  var explain = document.getElementById("genExplain");
+-  var msg = document.getElementById("genMsg");
+-  var go = document.getElementById("genGo");
+-  var stop = document.getElementById("genStop");
+-
+-  function persistForPractice() {
+-    saveCurrent();
+-    if (window.SemiGen && window.SemiGen.save) {
+-      window.SemiGen.save({ prompt: lastPrompt, language: lang(), files: files });
+-    }
+-  }
+-  function lang() { return document.getElementById("genLang").value; }
+-  function showMsg(text, bad) {
+-    msg.textContent = text || "";
+-    msg.className = "form-msg" + (text ? " is-shown" : "") + (bad ? " form-msg--error" : "");
+-  }
+-
+-  function extOf(path) {
+-    var m = /\.([a-z0-9]+)$/i.exec(path || "");
+-    return (m ? m[1] : "").toLowerCase();
+-  }
+-
+-  function saveCurrent() {
+-    if (!files[current]) return;
+-    files[current].content = editor.value;
+-  }
+-
+-  function openFile(i) {
+-    saveCurrent();
+-    current = i;
+-    var f = files[i];
+-    if (!f) return;
+-    editor.value = f.content || "";
+-    nameEl.textContent = f.path;
+-    [].forEach.call(tree.querySelectorAll("button"), function (b, idx) {
+-      b.setAttribute("aria-current", idx === i ? "true" : "false");
+-    });
+-  }
+-
+-  function renderTree() {
+-    tree.innerHTML = "";
+-    files.forEach(function (f, i) {
+-      var li = document.createElement("li");
+-      var b = document.createElement("button");
+-      b.type = "button";
+-      b.textContent = f.path;
+-      b.addEventListener("click", function () { openFile(i); });
+-      li.appendChild(b);
+-      tree.appendChild(li);
+-    });
+-    openFile(0);
+-    work.hidden = false;
+-  }
+-
+-  function canPreview() {
+-    return files.some(function (f) {
+-      var e = extOf(f.path);
+-      return e === "html" || e === "css" || e === "js";
+-    });
+-  }
+-
+-  function runPreview() {
+-    saveCurrent();
+-    if (!canPreview()) {
+-      preview.removeAttribute("srcdoc");
+-      note.textContent = "This language is not run on the server. Copy it and run it on your machine.";
+-      return;
+-    }
+-    var html = "", css = "", js = "";
+-    files.forEach(function (f) {
+-      var e = extOf(f.path);
+-      if (e === "html") html += f.content + "\n";
+-      else if (e === "css") css += f.content + "\n";
+-      else if (e === "js") js += f.content + "\n";
+-    });
+-    if (!html) {
+-      html = "<!DOCTYPE html><html><body><div id='app'></div></body></html>";
+-    }
+-    if (html.indexOf("</head>") !== -1) {
+-      html = html.replace("</head>", "<style>" + css + "</style></head>");
+-    } else {
+-      html = html.replace("<body", "<head><style>" + css + "</style></head><body");
+-    }
+-    html = html.replace("</body>", "<script>" + js + "<\/script></body>");
+-    preview.srcdoc = html;
+-    note.textContent = "Sandboxed preview (scripts allowed, no same-origin).";
+-  }
+-
+-  function downloadBlob(name, text) {
+-    var a = document.createElement("a");
+-    a.href = URL.createObjectURL(new Blob([text], { type: "text/plain" }));
+-    a.download = name;
+-    document.body.appendChild(a);
+-    a.click();
+-    document.body.removeChild(a);
+-    setTimeout(function () { URL.revokeObjectURL(a.href); }, 800);
+-  }
+-
+-  async function generate() {
+-    var prompt = document.getElementById("genPrompt").value.trim();
+-    if (!prompt) {
+-      showMsg("Type what you want to build, then press Generate code.", true);
+-      document.getElementById("genPrompt").focus();
+-      return;
+-    }
+-    lastPrompt = prompt;
+-    var localFiles = buildLocal
+-      ? buildLocal(prompt, lang(), document.getElementById("genFw").value, document.getElementById("genDiff").value, document.getElementById("genOut").value)
+-      : [{ path: "index.html", content: "<h1>" + prompt.replace(/</g, "") + "</h1>" }];
+-    files = localFiles;
+-    renderTree();
+-    runPreview();
+-    persistForPractice();
+-    if (work && work.scrollIntoView) work.scrollIntoView({ behavior: "smooth", block: "start" });
+-    showMsg("Code is in the editor. Preview is on the right.");
+-    go.disabled = true;
+-    stop.hidden = false;
+-    abort = new AbortController();
+-    var timer = setTimeout(function () { if (abort) abort.abort(); }, 8000);
+-    var data = { files: localFiles, reply: "Code generated.", aborted: false };
+-    if (api) {
+-      data = await api.ask({
+-        mode: "generate",
+-        message: prompt,
+-        language: lang(),
+-        framework: document.getElementById("genFw").value,
+-        difficulty: document.getElementById("genDiff").value,
+-        output: document.getElementById("genOut").value,
+-        history: genHistory.slice(-12),
+-        files: files.map(function (x) { return { path: x.path, content: (x.content || "").slice(0, 2500) }; }),
+-        abort: abort
+-      });
+-    }
+-    clearTimeout(timer);
+-    abort = null;
+-    go.disabled = false;
+-    stop.hidden = true;
+-    if (data.aborted) {
+-      persistForPractice();
+-      showMsg("Code is ready in the editor (Ada's live model was slow, so this version was built here).");
+-      return;
+-    }
+-    if (data.files && data.files.length && data.source && data.source !== "local") {
+-      files = data.files;
+-      renderTree();
+-      runPreview();
+-    }
+-    persistForPractice();
+-    genHistory.push({ role: "user", content: prompt });
+-    genHistory.push({ role: "assistant", content: data.reply || "Generated files." });
+-    showMsg(data.reply || "Code generated. Use Run / Preview, Copy, or Download.");
+-    explain.hidden = true;
+-  }
+-
+-  document.getElementById("genForm").addEventListener("submit", function (e) {
+-    e.preventDefault();
+-    generate();
+-  });
+-  stop.addEventListener("click", function () { if (abort) abort.abort(); });
+-
+-  document.getElementById("actCopy").addEventListener("click", function () {
+-    saveCurrent();
+-    navigator.clipboard.writeText(editor.value || "");
+-  });
+-  document.getElementById("actDl").addEventListener("click", function () {
+-    saveCurrent();
+-    var f = files[current];
+-    if (f) downloadBlob(f.path.replace(/[^\w.\-]+/g, "_"), f.content || "");
+-  });
+-  document.getElementById("actAll").addEventListener("click", function () {
+-    saveCurrent();
+-    files.forEach(function (f, i) {
+-      setTimeout(function () { downloadBlob(f.path.replace(/[^\w.\-]+/g, "_"), f.content || ""); }, i * 200);
+-    });
+-  });
+-  document.getElementById("actFmt").addEventListener("click", function () {
+-    saveCurrent();
+-    var t = editor.value || "";
+-    try {
+-      if (/^\s*[\[{]/.test(t)) editor.value = JSON.stringify(JSON.parse(t), null, 2);
+-      else editor.value = t.replace(/[ \t]+$/gm, "").replace(/\n{3,}/g, "\n\n");
+-    } catch (e) {
+-      editor.value = t.replace(/[ \t]+$/gm, "");
+-    }
+-    saveCurrent();
+-  });
+-  document.getElementById("actPreview").addEventListener("click", runPreview);
+-  var practiceBtn = document.getElementById("actPractice");
+-  if (practiceBtn) {
+-    practiceBtn.addEventListener("click", function (e) {
+-      persistForPractice();
+-    });
+-  }
+-
+-  async function assist(mode) {
+-    saveCurrent();
+-    var f = files[current];
+-    if (!f) return;
+-    if (!api) { showMsg("Live Ada is not loaded.", true); return; }
+-    showMsg("Ada is reading the project…");
+-    var data = await api.ask({
+-      mode: mode,
+-      message: (f.path + "\n\n" + f.content).slice(0, 12000),
+-      files: files.map(function (x) { return { path: x.path, content: (x.content || "").slice(0, 4000) }; }),
+-      language: lang()
+-    });
+-    explain.hidden = false;
+-    explain.innerHTML = api.renderMarkdown(data.reply || api.FAIL);
+-    if (window.hljs) {
+-      explain.querySelectorAll("pre code").forEach(function (el) {
+-        window.hljs.highlightElement(el);
+-      });
+-    }
+-    explain.querySelectorAll(".ada-copy").forEach(function (btn) {
+-      btn.addEventListener("click", function () {
+-        var id = btn.getAttribute("data-copy");
+-        var code = explain.querySelector('code[data-copy-src="' + id + '"]');
+-        if (code) navigator.clipboard.writeText(code.textContent || "");
+-      });
+-    });
+-    pendingApply = "";
+-    var applyBtn = document.getElementById("actApply");
+-    if (applyBtn) applyBtn.hidden = true;
+-    if (mode === "improve" || mode === "debug") {
+-      var block = explain.querySelector("code[data-copy-src]");
+-      if (block) {
+-        pendingApply = block.textContent;
+-        if (applyBtn) applyBtn.hidden = false;
+-        showMsg("Review Ada's change, then Apply if you want it in the editor.");
+-        return;
+-      }
+-    }
+-    showMsg("");
+-  }
+-
+-  document.getElementById("actApply").addEventListener("click", function () {
+-    if (!pendingApply || !files[current]) return;
+-    files[current].content = pendingApply;
+-    editor.value = pendingApply;
+-    pendingApply = "";
+-    document.getElementById("actApply").hidden = true;
+-    showMsg("Applied to " + files[current].path);
+-  });
+-
+-  document.getElementById("actExplain").addEventListener("click", function () { assist("explain"); });
+-  document.getElementById("actImprove").addEventListener("click", function () { assist("improve"); });
+-  document.getElementById("actDebug").addEventListener("click", function () { assist("debug"); });
+-  document.getElementById("actRegen").addEventListener("click", function () {
+-    if (lastPrompt) {
+-      document.getElementById("genPrompt").value = lastPrompt;
+-      generate();
+-    }
+-  });
+-
+-  document.getElementById("chGo").addEventListener("click", async function () {
+-    var data = await api.ask({
+-      mode: "challenge",
+-      message: document.getElementById("chTopic").value.trim() || "loops",
+-      language: document.getElementById("chLang").value,
+-      difficulty: document.getElementById("chDiff").value
+-    });
+-    document.getElementById("chCard").hidden = false;
+-    document.getElementById("chTitle").textContent = data.title || "Challenge";
+-    document.getElementById("chDesc").textContent = data.description || data.reply || "";
+-    document.getElementById("chIn").textContent = data.example_in || "—";
+-    document.getElementById("chOut").textContent = data.example_out || "—";
+-    document.getElementById("chStart").textContent = data.starter || "";
+-    var ul = document.getElementById("chHints");
+-    ul.innerHTML = "";
+-    (data.hints || []).forEach(function (h) {
+-      var li = document.createElement("li");
+-      li.textContent = h;
+-      ul.appendChild(li);
+-    });
+-    var box = document.getElementById("chSolBox");
+-    box.hidden = true;
+-    box.textContent = data.solution || "";
+-  });
+-  document.getElementById("chSol").addEventListener("click", function () {
+-    document.getElementById("chSolBox").hidden = false;
+-  });
+-
+-  var IDEAS = [
+-    "Responsive portfolio for a photographer",
+-    "To-do list with localStorage",
+-    "Cricket scoreboard",
+-    "Bakery landing page",
+-    "Python quiz on planets",
+-    "SQL table for a library",
+-    "Snake game in JavaScript",
+-    "Study timer with breaks"
+-  ];
+-  var ideas = document.getElementById("genIdeas");
+-  if (ideas) {
+-    IDEAS.forEach(function (text) {
+-      var b = document.createElement("button");
+-      b.type = "button";
+-      b.className = "ada-chip";
+-      b.textContent = text;
+-      b.addEventListener("click", function () {
+-        document.getElementById("genPrompt").value = "Create: " + text;
+-        generate();
+-      });
+-      ideas.appendChild(b);
+-    });
+-  }
+-
+-  files = [
+-    { path: "index.html", content: "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\">\n  <title>Your project</title>\n  <link rel=\"stylesheet\" href=\"style.css\">\n</head>\n<body>\n  <h1>Code Generator</h1>\n  <p>Describe anything above, then Generate. This editor is the place the files land.</p>\n  <script src=\"script.js\"></script>\n</body>\n</html>\n" },
+-    { path: "style.css", content: "body { font-family: system-ui, sans-serif; margin: 2rem; }\n" },
+-    { path: "script.js", content: "console.log(\"Ada is ready\");\n" },
+-    { path: "README.md", content: "# Your project\n\nGenerate to replace these starter files.\n" }
+-  ];
+-  renderTree();
+-  runPreview();
+-
+-  var chatLog = document.getElementById("genChatLog");
+-  var chatForm = document.getElementById("genChatForm");
+-  var chatInput = document.getElementById("genChatInput");
+-  var chatHistory = [];
+-
+-  function chatRow(kind, html) {
+-    if (!chatLog) return;
+-    var row = document.createElement("div");
+-    row.className = "ada-row ada-row--" + (kind === "user" ? "user" : "bot");
+-    var el = document.createElement("div");
+-    el.className = "ada-bubble ada-bubble--" + kind;
+-    if (kind === "user") el.textContent = html;
+-    else el.innerHTML = html;
+-    row.appendChild(el);
+-    chatLog.appendChild(row);
+-    chatLog.scrollTop = chatLog.scrollHeight;
+-    return el;
+-  }
+-
+-  if (chatForm && chatInput) {
+-    chatRow("bot", "<p>This chat is tied to the files on the left. Ask for a change, an explanation, or anything else.</p>");
+-    chatForm.addEventListener("submit", async function (e) {
+-      e.preventDefault();
+-      var text = chatInput.value.trim();
+-      if (!text) return;
+-      chatInput.value = "";
+-      chatRow("user", text);
+-      saveCurrent();
+-      var thinking = chatRow("bot", "<p>…</p>");
+-      if (!api) {
+-        thinking.textContent = "Code is already in the editor. The live chat needs /api/ada.";
+-        return;
+-      }
+-      var data = await api.ask({
+-        mode: "chat",
+-        message: text,
+-        history: chatHistory.slice(-16),
+-        files: files.map(function (x) { return { path: x.path, content: (x.content || "").slice(0, 4000) }; }),
+-        language: lang()
+-      });
+-      thinking.innerHTML = api.renderMarkdown(data.reply || api.FAIL);
+-      thinking.querySelectorAll(".ada-copy").forEach(function (btn) {
+-        btn.addEventListener("click", function () {
+-          var id = btn.getAttribute("data-copy");
+-          var code = thinking.querySelector('code[data-copy-src="' + id + '"]');
+-          if (code) navigator.clipboard.writeText(code.textContent || "");
+-        });
+-      });
+-      chatHistory.push({ role: "user", content: text });
+-      chatHistory.push({ role: "assistant", content: data.reply || "" });
+-      var block = thinking.querySelector("code[data-copy-src]");
+-      if (block && /```|file:/.test(data.reply || "") && files[current]) {
+-        pendingApply = block.textContent;
+-        var applyBtn = document.getElementById("actApply");
+-        if (applyBtn && pendingApply) {
+-          applyBtn.hidden = false;
+-          showMsg("Ada proposed an edit. Press Apply change to put it in the editor.");
+-        }
+-      }
+-    });
+-  }
+-})();
+diff --git a/pages/about.html b/pages/about.html
+index ce407dc..82f604c 100644
+--- a/pages/about.html
++++ b/pages/about.html
+@@ -31,8 +31,7 @@
+       </li>
+       <li><a class="nav-link" href="concepts.html">Concepts</a></li>
+       <li><a class="nav-link" href="playground.html">Practice</a></li>
+-      <li><a class="nav-link" href="generate.html">Generator</a></li>
+-      <li><a class="nav-link" href="projects.html">Projects</a></li>
++<li><a class="nav-link" href="projects.html">Projects</a></li>
+       <li><a class="nav-link" href="ada.html">Ada</a></li>
+       <li><a class="nav-link" href="blog.html">Blog</a></li>
+       <li><a class="nav-link" href="about.html">About</a></li>
+diff --git a/pages/ada.html b/pages/ada.html
+index 516c892..1b6680f 100644
+--- a/pages/ada.html
++++ b/pages/ada.html
+@@ -32,8 +32,7 @@
+       </li>
+       <li><a class="nav-link" href="concepts.html">Concepts</a></li>
+       <li><a class="nav-link" href="playground.html">Practice</a></li>
+-      <li><a class="nav-link" href="generate.html">Generator</a></li>
+-      <li><a class="nav-link" href="projects.html">Projects</a></li>
++<li><a class="nav-link" href="projects.html">Projects</a></li>
+       <li><a class="nav-link" href="ada.html" aria-current="page">Ada</a></li>
+       <li><a class="nav-link" href="blog.html">Blog</a></li>
+       <li><a class="nav-link" href="about.html">About</a></li>
+@@ -104,7 +103,7 @@
+         <ul class="ada-know">
+           <li><strong>Any topic</strong> sites, games, school, data, stories, tools</li>
+           <li><strong>Follow-ups</strong> “now make it dark” edits the last answer</li>
+-          <li><strong>Workshop</strong> files live in the <a href="generate.html">Code Generator</a></li>
++          <li><strong>Workshop</strong> describe what you need in this chat</li>
+           <li><strong>Practice</strong> hints first if you are learning</li>
+         </ul>
+         <p class="ada-rail-note">You are AnshX. Ada will greet you by name.</p>
+diff --git a/pages/blog.html b/pages/blog.html
+index 93b7da9..f969d5e 100644
+--- a/pages/blog.html
++++ b/pages/blog.html
+@@ -31,8 +31,7 @@
+       </li>
+       <li><a class="nav-link" href="concepts.html">Concepts</a></li>
+       <li><a class="nav-link" href="playground.html">Practice</a></li>
+-      <li><a class="nav-link" href="generate.html">Generator</a></li>
+-      <li><a class="nav-link" href="projects.html">Projects</a></li>
++<li><a class="nav-link" href="projects.html">Projects</a></li>
+       <li><a class="nav-link" href="ada.html">Ada</a></li>
+       <li><a class="nav-link" href="blog.html">Blog</a></li>
+       <li><a class="nav-link" href="about.html">About</a></li>
+diff --git a/pages/concepts.html b/pages/concepts.html
+index 65be9c0..742fe70 100644
+--- a/pages/concepts.html
++++ b/pages/concepts.html
+@@ -33,8 +33,7 @@
+       </li>
+       <li><a class="nav-link" href="concepts.html">Concepts</a></li>
+       <li><a class="nav-link" href="playground.html">Practice</a></li>
+-      <li><a class="nav-link" href="generate.html">Generator</a></li>
+-      <li><a class="nav-link" href="projects.html">Projects</a></li>
++<li><a class="nav-link" href="projects.html">Projects</a></li>
+       <li><a class="nav-link" href="ada.html">Ada</a></li>
+       <li><a class="nav-link" href="blog.html">Blog</a></li>
+       <li><a class="nav-link" href="about.html">About</a></li>
+diff --git a/pages/contact.html b/pages/contact.html
+index 8fa4703..db9b082 100644
+--- a/pages/contact.html
++++ b/pages/contact.html
+@@ -31,8 +31,7 @@
+       </li>
+       <li><a class="nav-link" href="concepts.html">Concepts</a></li>
+       <li><a class="nav-link" href="playground.html">Practice</a></li>
+-      <li><a class="nav-link" href="generate.html">Generator</a></li>
+-      <li><a class="nav-link" href="projects.html">Projects</a></li>
++<li><a class="nav-link" href="projects.html">Projects</a></li>
+       <li><a class="nav-link" href="ada.html">Ada</a></li>
+       <li><a class="nav-link" href="blog.html">Blog</a></li>
+       <li><a class="nav-link" href="about.html">About</a></li>
+diff --git a/pages/generate.html b/pages/generate.html
+deleted file mode 100644
+index 98fce04..0000000
+--- a/pages/generate.html
++++ /dev/null
+@@ -1,215 +0,0 @@
+-<!DOCTYPE html>
+-<html lang="en">
+-<head>
+-  <meta charset="UTF-8">
+-  <meta name="viewport" content="width=device-width, initial-scale=1">
+-  <title>Code Generator — Semicolon</title>
+-  <meta name="description" content="Describe what you want to build. Ada generates working code you can edit, preview, copy and download.">
+-  <link rel="stylesheet" href="../css/style.css?v=20260816k">
+-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" crossorigin="anonymous">
+-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%234f46e5'/><text x='16' y='23' font-size='22' font-family='monospace' fill='white' text-anchor='middle'>;</text></svg>">
+-</head>
+-<body>
+-<a class="skip-link" href="#main">Skip to main content</a>
+-<header class="site-header">
+-  <nav class="container nav" aria-label="Main navigation">
+-    <a class="brand" href="../index.html"><span class="brand-mark" aria-hidden="true">;</span> Semicolon</a>
+-    <ul class="nav-menu" id="navMenu">
+-      <li><a class="nav-link" href="../index.html">Home</a></li>
+-      <li class="has-dropdown">
+-        <a class="nav-link" href="learn.html">Learn
+-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+-        </a>
+-        <ul class="dropdown">
+-          <li><a href="learn.html?cat=Python">Python <small>Automate things, work with data</small></a></li>
+-          <li><a href="learn.html?cat=Web">Web <small>HTML, CSS and JavaScript</small></a></li>
+-          <li><a href="learn.html?cat=Tools">Tools <small>Git, the terminal, editors</small></a></li>
+-          <li><a href="learn.html?cat=Core Skills">Core Skills <small>Debugging and problem solving</small></a></li>
+-          <li><a href="learn.html?cat=Projects">Projects <small>Build and ship something real</small></a></li>
+-        </ul>
+-      </li>
+-      <li><a class="nav-link" href="concepts.html">Concepts</a></li>
+-      <li><a class="nav-link" href="playground.html">Practice</a></li>
+-      <li><a class="nav-link" href="generate.html">Generator</a></li>
+-      <li><a class="nav-link" href="projects.html">Projects</a></li>
+-      <li><a class="nav-link" href="ada.html">Ada</a></li>
+-      <li><a class="nav-link" href="blog.html">Blog</a></li>
+-      <li><a class="nav-link" href="about.html">About</a></li>
+-    </ul>
+-    <div class="nav-actions">
+-      <a class="btn btn--primary btn--sm nav-cta" href="ada.html">Ask Ada</a>
+-      <button class="icon-btn" type="button" data-theme-toggle aria-pressed="false"></button>
+-      <button class="icon-btn nav-toggle" type="button" aria-expanded="false" aria-controls="navMenu" aria-label="Open menu"></button>
+-    </div>
+-  </nav>
+-</header>
+-
+-<main id="main">
+-  <section class="page-header">
+-    <div class="container">
+-      <nav class="breadcrumb" aria-label="Breadcrumb"><a href="../index.html">Home</a> / Generator</nav>
+-      <span class="eyebrow">Learn. Code. Build.</span>
+-      <h1>Semicolon Code Generator</h1>
+-      <p class="lede">This is Ada's workshop. Describe anything you want to build. Files appear in the editor. Chat underneath to change them — like a normal assistant, not a form that forgets you.</p>
+-    </div>
+-  </section>
+-
+-  <section class="section gen-page">
+-    <div class="container">
+-      <form id="genForm" class="gen-form" novalidate>
+-        <label for="genPrompt"><strong>What do you want to build?</strong></label>
+-        <p class="gen-any">Any topic — a shop, a game, homework, a dashboard, a story site. Ada writes the files here.</p>
+-        <textarea id="genPrompt" rows="4" placeholder="Create a responsive portfolio website for a photographer."></textarea>
+-        <div class="gen-ideas" id="genIdeas" aria-label="Example projects"></div>
+-        <div class="gen-opts">
+-          <label>Language
+-            <select id="genLang">
+-              <option>HTML</option>
+-              <option>CSS</option>
+-              <option>JavaScript</option>
+-              <option>Python</option>
+-              <option>C</option>
+-              <option>C++</option>
+-              <option>Java</option>
+-              <option>SQL</option>
+-              <option>TypeScript</option>
+-            </select>
+-          </label>
+-          <label>Framework
+-            <select id="genFw">
+-              <option>None</option>
+-              <option>React</option>
+-            </select>
+-          </label>
+-          <label>Difficulty
+-            <select id="genDiff">
+-              <option>Beginner</option>
+-              <option>Intermediate</option>
+-              <option>Advanced</option>
+-            </select>
+-          </label>
+-          <label>Output
+-            <select id="genOut">
+-              <option value="single">Single file</option>
+-              <option value="multiple">Multiple files</option>
+-              <option value="project" selected>Full project</option>
+-            </select>
+-          </label>
+-        </div>
+-        <div class="btn-row">
+-          <button class="btn btn--primary" type="submit" id="genGo">Generate code</button>
+-          <button class="btn btn--ghost" type="button" id="genStop" hidden>Stop</button>
+-        </div>
+-        <p class="form-msg" id="genMsg" role="status"></p>
+-      </form>
+-
+-      <div class="gen-work" id="genWork">
+-        <aside class="gen-files" aria-label="Project files">
+-          <h2>Project</h2>
+-          <ul id="genTree"></ul>
+-        </aside>
+-        <div class="gen-main">
+-          <div class="gen-toolbar">
+-            <span id="genFileName">—</span>
+-            <div class="btn-row">
+-              <button class="btn btn--ghost btn--sm" type="button" id="actCopy">Copy</button>
+-              <button class="btn btn--ghost btn--sm" type="button" id="actDl">Download</button>
+-              <button class="btn btn--ghost btn--sm" type="button" id="actAll">Download all</button>
+-              <button class="btn btn--ghost btn--sm" type="button" id="actFmt">Format</button>
+-              <button class="btn btn--ghost btn--sm" type="button" id="actExplain">Explain</button>
+-              <button class="btn btn--ghost btn--sm" type="button" id="actImprove">Improve</button>
+-              <button class="btn btn--ghost btn--sm" type="button" id="actDebug">Debug</button>
+-              <button class="btn btn--ghost btn--sm" type="button" id="actRegen">Regenerate</button>
+-              <button class="btn btn--ghost btn--sm" type="button" id="actApply" hidden>Apply change</button>
+-              <button class="btn btn--primary btn--sm" type="button" id="actPreview">Run / Preview</button>
+-              <a class="btn btn--ghost btn--sm" id="actPractice" href="playground.html?mode=gen">Run in Practice</a>
+-            </div>
+-          </div>
+-          <div class="gen-split">
+-            <div class="gen-editor-wrap">
+-              <textarea id="genEditor" spellcheck="false" aria-label="Generated code"></textarea>
+-            </div>
+-            <div class="gen-preview-wrap">
+-              <iframe id="genPreview" title="Live preview" sandbox="allow-scripts"></iframe>
+-              <p class="gen-preview-note" id="genPreviewNote">HTML, CSS and JavaScript can preview here. Other languages are not executed on the server.</p>
+-            </div>
+-          </div>
+-          <div class="ada-bubble ada-bubble--bot gen-explain" id="genExplain" hidden></div>
+-        </div>
+-      </div>
+-
+-      <section class="gen-chat-place" id="genChatBox">
+-        <h2>Chat with Ada</h2>
+-        <p>A real conversation about this project — or anything else. Follow-ups stay in context.</p>
+-        <div id="genChatLog" class="ada-log gen-chat-log" aria-live="polite"></div>
+-        <form id="genChatForm" class="ada-form" novalidate>
+-          <label class="sr-only" for="genChatInput">Message Ada</label>
+-          <textarea id="genChatInput" rows="2" placeholder="Make the header sticky. Or ask anything — Ada will keep this chat."></textarea>
+-          <button class="btn btn--primary" type="submit" id="genChatSend">Send</button>
+-        </form>
+-      </section>
+-
+-      <section class="gen-challenge" id="challengeBox">
+-        <h2>Create a challenge</h2>
+-        <p>Ada writes a practice task with starter code and hints. Solutions stay hidden until you ask.</p>
+-        <div class="gen-opts">
+-          <label>Language
+-            <select id="chLang">
+-              <option>JavaScript</option>
+-              <option>Python</option>
+-            </select>
+-          </label>
+-          <label>Difficulty
+-            <select id="chDiff">
+-              <option>Beginner</option>
+-              <option>Intermediate</option>
+-            </select>
+-          </label>
+-          <label>Topic
+-            <input id="chTopic" type="text" value="Loops" maxlength="80">
+-          </label>
+-        </div>
+-        <button class="btn btn--ghost" type="button" id="chGo">Create challenge</button>
+-        <article class="card" id="chCard" hidden>
+-          <h3 id="chTitle"></h3>
+-          <p id="chDesc"></p>
+-          <p><strong>Example in:</strong> <code id="chIn"></code></p>
+-          <p><strong>Example out:</strong> <code id="chOut"></code></p>
+-          <pre><code id="chStart"></code></pre>
+-          <ul id="chHints"></ul>
+-          <button class="btn btn--ghost btn--sm" type="button" id="chSol">Show solution</button>
+-          <pre id="chSolBox" hidden></pre>
+-        </article>
+-      </section>
+-    </div>
+-  </section>
+-</main>
+-
+-<footer class="site-footer">
+-  <div class="container">
+-    <div class="footer-bottom">
+-      <span>&copy; <span class="js-year"></span> Semicolon. All rights reserved.</span>
+-    </div>
+-    <div class="creator-signature">
+-      <div class="creator-divider" aria-hidden="true">
+-        <span class="creator-rule"></span>
+-        <span class="creator-diamond"></span>
+-        <span class="creator-rule"></span>
+-      </div>
+-      <p class="creator-line">
+-        <span class="creator-label">Made with passion by</span>
+-        <span class="creator-name">Anshuman Srivastava</span>
+-      </p>
+-    </div>
+-  </div>
+-</footer>
+-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" crossorigin="anonymous"></script>
+-<script src="../js/config.js"></script>
+-<script src="../js/data.js"></script>
+-<script src="../components/ui.js"></script>
+-<script src="../js/main.js"></script>
+-<script src="../js/gen-build.js?v=20260816k"></script>
+-<script src="../js/ada-api.js?v=20260816k"></script>
+-<script src="../js/generate.js?v=20260816k"></script>
+-</body>
+-</html>
+diff --git a/pages/learn.html b/pages/learn.html
+index 2c9bad6..3d4714a 100644
+--- a/pages/learn.html
++++ b/pages/learn.html
+@@ -31,8 +31,7 @@
+       </li>
+       <li><a class="nav-link" href="concepts.html">Concepts</a></li>
+       <li><a class="nav-link" href="playground.html">Practice</a></li>
+-      <li><a class="nav-link" href="generate.html">Generator</a></li>
+-      <li><a class="nav-link" href="projects.html">Projects</a></li>
++<li><a class="nav-link" href="projects.html">Projects</a></li>
+       <li><a class="nav-link" href="ada.html">Ada</a></li>
+       <li><a class="nav-link" href="blog.html">Blog</a></li>
+       <li><a class="nav-link" href="about.html">About</a></li>
+diff --git a/pages/lesson.html b/pages/lesson.html
+index 0ba0c31..be55682 100644
+--- a/pages/lesson.html
++++ b/pages/lesson.html
+@@ -31,8 +31,7 @@
+       </li>
+       <li><a class="nav-link" href="concepts.html">Concepts</a></li>
+       <li><a class="nav-link" href="playground.html">Practice</a></li>
+-      <li><a class="nav-link" href="generate.html">Generator</a></li>
+-      <li><a class="nav-link" href="projects.html">Projects</a></li>
++<li><a class="nav-link" href="projects.html">Projects</a></li>
+       <li><a class="nav-link" href="ada.html">Ada</a></li>
+       <li><a class="nav-link" href="blog.html">Blog</a></li>
+       <li><a class="nav-link" href="about.html">About</a></li>
+diff --git a/pages/playground.html b/pages/playground.html
+index 160c4f7..0a16cdb 100644
+--- a/pages/playground.html
++++ b/pages/playground.html
+@@ -31,8 +31,7 @@
+       </li>
+       <li><a class="nav-link" href="concepts.html">Concepts</a></li>
+       <li><a class="nav-link" href="playground.html" aria-current="page">Practice</a></li>
+-      <li><a class="nav-link" href="generate.html">Generator</a></li>
+-      <li><a class="nav-link" href="projects.html">Projects</a></li>
++<li><a class="nav-link" href="projects.html">Projects</a></li>
+       <li><a class="nav-link" href="ada.html">Ada</a></li>
+       <li><a class="nav-link" href="blog.html">Blog</a></li>
+       <li><a class="nav-link" href="about.html">About</a></li>
+@@ -54,8 +53,8 @@
+       <h1>The Practice Area</h1>
+       <p class="lede">
+         Reading about code and writing code are different skills, and only one of them
+-        makes you a programmer. Generate a project, then open <strong>Run generated</strong>
+-        to check the files and press Run. HTML and JavaScript run in this browser.
++        makes you a programmer. Everything here runs in your browser, instantly,
++        with nothing to install.
+       </p>
+     </div>
+   </section>
+@@ -73,10 +72,6 @@
+                 aria-controls="modePy" type="button">
+           <strong>Python</strong><span>Write it, then ask Ada</span>
+         </button>
+-        <button class="mode-tab" id="tabGen" role="tab" aria-selected="false"
+-                aria-controls="modeGen" type="button">
+-          <strong>Run generated</strong><span>Check the code, then press Run</span>
+-        </button>
+         <button class="mode-tab" id="tabWeb" role="tab" aria-selected="false"
+                 aria-controls="modeWeb" type="button">
+           <strong>Web Builder</strong><span>HTML + CSS + JS, live preview</span>
+@@ -165,57 +160,6 @@
+         </div>
+       </div>
+ 
+-      <!-- ============ RUN GENERATED CODE ============ -->
+-      <div id="modeGen" role="tabpanel" aria-labelledby="tabGen" hidden>
+-        <p class="py-note">
+-          Generate a project here, or open one from the Code Generator.
+-          Check the HTML, CSS and JavaScript tabs, then press <strong>Run</strong>.
+-          It runs in this browser — nothing is sent to the server to execute.
+-        </p>
+-        <div class="gen-form" style="margin-bottom:1rem">
+-          <label for="runPrompt"><strong>What do you want to build?</strong></label>
+-          <textarea id="runPrompt" rows="2" placeholder="A bakery menu, a photographer portfolio, a quiz…"></textarea>
+-          <div class="play-actions" style="margin-top:.7rem">
+-            <button class="btn btn--primary" type="button" id="runGenMake">Generate</button>
+-            <button class="btn btn--primary" type="button" id="runGenRun">▶ Run</button>
+-            <button class="btn btn--ghost btn--sm" type="button" id="runJsOnly">Run JavaScript only</button>
+-            <a class="btn btn--ghost btn--sm" href="generate.html">Full Code Generator</a>
+-          </div>
+-          <p class="form-msg" id="runGenMsg" role="status"></p>
+-        </div>
+-        <div class="play-stack">
+-          <div class="play-pane preview-pane">
+-            <div class="pane-head">
+-              <span class="pane-title">Live preview</span>
+-              <span class="pane-lang" id="runGenTitle">no project yet</span>
+-            </div>
+-            <div class="preview-frame">
+-              <iframe id="runPreview" title="Generated project preview" sandbox="allow-scripts"></iframe>
+-            </div>
+-          </div>
+-          <div class="play-grid">
+-            <div class="play-pane">
+-              <div class="pane-head">
+-                <div class="file-tabs" role="tablist" aria-label="Generated files">
+-                  <button class="file-tab is-on" data-gfile="html" type="button" role="tab" aria-selected="true">index.html</button>
+-                  <button class="file-tab" data-gfile="css" type="button" role="tab" aria-selected="false">style.css</button>
+-                  <button class="file-tab" data-gfile="js" type="button" role="tab" aria-selected="false">script.js</button>
+-                </div>
+-              </div>
+-              <label class="sr-only" for="runInput">Generated code</label>
+-              <textarea id="runInput" spellcheck="false" autocomplete="off"></textarea>
+-            </div>
+-            <div class="play-pane">
+-              <div class="pane-head">
+-                <span class="pane-title">Console</span>
+-                <button class="linklike" id="runConsClear" type="button">clear</button>
+-              </div>
+-              <pre class="play-output" id="runConsole">Press Run. console.log from your page appears here.</pre>
+-            </div>
+-          </div>
+-        </div>
+-      </div>
+-
+       <!-- ============ MODE 2 · WEB BUILDER ============ -->
+       <div id="modeWeb" role="tabpanel" aria-labelledby="tabWeb" hidden>
+         <div class="template-bar" id="templateBar">
+diff --git a/pages/post.html b/pages/post.html
+index 33d67f9..6aa8cd0 100644
+--- a/pages/post.html
++++ b/pages/post.html
+@@ -31,8 +31,7 @@
+       </li>
+       <li><a class="nav-link" href="concepts.html">Concepts</a></li>
+       <li><a class="nav-link" href="playground.html">Practice</a></li>
+-      <li><a class="nav-link" href="generate.html">Generator</a></li>
+-      <li><a class="nav-link" href="projects.html">Projects</a></li>
++<li><a class="nav-link" href="projects.html">Projects</a></li>
+       <li><a class="nav-link" href="ada.html">Ada</a></li>
+       <li><a class="nav-link" href="blog.html">Blog</a></li>
+       <li><a class="nav-link" href="about.html">About</a></li>
+diff --git a/pages/projects.html b/pages/projects.html
+index aa13451..4456aec 100644
+--- a/pages/projects.html
++++ b/pages/projects.html
+@@ -4,7 +4,7 @@
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1">
+   <title>Projects — Semicolon</title>
+-  <meta name="description" content="Build and ship something real. Semicolon project tracks plus the Code Generator.">
++  <meta name="description" content="Build and ship something real. Semicolon project tracks you can ship.">
+   <link rel="stylesheet" href="../css/style.css?v=20260816i">
+   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%234f46e5'/><text x='16' y='23' font-size='22' font-family='monospace' fill='white' text-anchor='middle'>;</text></svg>">
+ </head>
+@@ -29,14 +29,13 @@
+       </li>
+       <li><a class="nav-link" href="concepts.html">Concepts</a></li>
+       <li><a class="nav-link" href="playground.html">Practice</a></li>
+-      <li><a class="nav-link" href="generate.html">Generator</a></li>
+-      <li><a class="nav-link" href="projects.html" aria-current="page">Projects</a></li>
++<li><a class="nav-link" href="projects.html" aria-current="page">Projects</a></li>
+       <li><a class="nav-link" href="ada.html">Ada</a></li>
+       <li><a class="nav-link" href="blog.html">Blog</a></li>
+       <li><a class="nav-link" href="about.html">About</a></li>
+     </ul>
+     <div class="nav-actions">
+-      <a class="btn btn--primary btn--sm nav-cta" href="generate.html">Code Generator</a>
++      <a class="btn btn--primary btn--sm nav-cta" href="learn.html">Start learning</a>
+       <button class="icon-btn" type="button" data-theme-toggle aria-pressed="false"></button>
+       <button class="icon-btn nav-toggle" type="button" aria-expanded="false" aria-controls="navMenu" aria-label="Open menu"></button>
+     </div>
+@@ -50,12 +49,11 @@
+       <span class="eyebrow">Learn. Code. Build.</span>
+       <h1>Projects</h1>
+       <p class="lede">
+-        Guided tracks that end with something you can show someone — plus Ada's Code Generator
++        Guided tracks that end with something you can show someone
+         when you already know what you want to make.
+       </p>
+       <div class="btn-row">
+-        <a class="btn btn--primary" href="generate.html">Open Code Generator</a>
+-        <a class="btn btn--ghost" href="playground.html">Practice first</a>
++<a class="btn btn--ghost" href="playground.html">Practice first</a>
+       </div>
+     </div>
+   </section>
+diff --git a/sitemap.xml b/sitemap.xml
+index 806943f..1ac2c6b 100644
+--- a/sitemap.xml
++++ b/sitemap.xml
+@@ -62,7 +62,6 @@
+ 
+   <!-- Practice area -->
+   <url><loc>https://semicolon.punah.pro/pages/playground.html</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+-  <url><loc>https://semicolon.punah.pro/pages/generate.html</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
+   <url><loc>https://semicolon.punah.pro/pages/projects.html</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+   <url><loc>https://semicolon.punah.pro/pages/ada.html</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+ 
+-- 
+2.43.0
+

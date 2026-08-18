@@ -1,25 +1,25 @@
 # AGENTS.md
 
-**ANSHUX** — two mains (Cursor, Codex) plus three knowledge chats (Claude, ChatGPT, Gemini). No Claude Code.
+**ANSHUX** mains: **Cursor**, **Codex**. Knowledge brains: **Ada** (Semicolon), **Beast** (Cosmos). Optional: Claude, ChatGPT, Gemini. No Claude Code.
 
-Live board: `AGENT_TASK.md`. Subtasks: `anshux/SUBTASKS.md`. Knowledge prompts: `anshux/knowledge/`.
+If `AGENT_TASK.md` STATUS is not `STOP`, keep working. Do not idle. Do not wait for an empty Codex role-folder.
 
 ## Cursor (main)
 
-Plan, implement, test, site checks. Log as **Cursor**.
+Implement, test, check Semicolon + Cosmos. Log as **Cursor**.
 
 ## Codex (main)
 
-Same rights as Cursor. If this session is the empty `Documents\Codex\...\` role folder, copy `anshux/codex-role\*` into it first. Log as **Codex**.
+Same. Copy `anshux/codex-role\*` only if you are in `Documents\Codex\...`. Prefer this git repo. Log as **Codex**. Loop until STOP.
 
-## Claude (knowledge)
+## Ada (knowledge sub-agency)
 
-Normal Claude chat — not Claude Code. Read `anshux/knowledge/CLAUDE.md`. Answers and drafts only unless a main asks for a review comment.
+Semicolon’s tutor brain. Read `anshux/knowledge/ADA.md`.
 
-## ChatGPT (knowledge)
+## Beast (knowledge sub-agency)
 
-Read `anshux/knowledge/CHATGPT.md`. General Q&A and drafts.
+Cosmos’s tutor brain. Read `anshux/knowledge/BEAST.md`.
 
-## Gemini (knowledge)
+## Claude / ChatGPT / Gemini (optional knowledge)
 
-Read `anshux/knowledge/GEMINI.md`. Research-style answers and long-doc summaries.
+Normal chat only. See `anshux/knowledge/`.

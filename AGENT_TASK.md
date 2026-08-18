@@ -1,26 +1,26 @@
 # AGENT_TASK
 
 PROJECT: ANSHUX
-STATUS: REVIEW
+STATUS: LOOP
 
 MAINS: Cursor, Codex
-KNOWLEDGE: Claude, ChatGPT, Gemini
-REMOVED: Claude Code (not an ANSHUX agent)
+KNOWLEDGE BRAINS: Ada (Semicolon), Beast (Cosmos)
+OPTIONAL CHAT: Claude, ChatGPT, Gemini
+REMOVED: Claude Code
 
-## Now (mains)
+**Until Anshuman sets `STATUS: STOP`, Cursor and Codex keep looping.** Do not idle.
 
-Defensive review of Semicolon and Cosmos. Report: `anshux/SITE_SECURITY_REPORT.md` (Cursor filling this from live probes because Codex’s role folder had no files).
+## This cycle
 
-Codex may still copy `anshux/codex-role\*` into `Documents\Codex\2026-08-17\<role>\` and add findings to the same report.
+1. Semicolon Code Generator removed in patch `anshux/patches/semicolon-remove-generator.patch` (cannot push `semicolon` from this agent — apply on the laptop repo). Live punah.pro still has Generator until that lands.
+2. Jarvis bugfix: `open backend` → `https://cosmos.punah.pro/back`.
+3. Site check: `anshux/SITE_SECURITY_REPORT.md` — mains re-read and extend.
+4. Knowledge: Ada + Beast sub-agencies.
 
-## Knowledge
+## Codex
 
-Ask Claude / ChatGPT / Gemini only for explanations or draft wording. They do not change STATUS.
-
-## Later (optional)
-
-Windows skipif tests: `tests/test_window_controller.py`, `tests/test_system_controller.py`.
+If you can reach this repo, work here. If you only have a role folder, copy `anshux/codex-role\*`. Then check sites using `work\` HTML + report. Next open subtask. Log. Repeat until STOP.
 
 ## Last pytest (Cursor)
 
-PASS — 36 tests — 2026-08-17T17:57:00Z
+PASS — 37 tests — 2026-08-18
