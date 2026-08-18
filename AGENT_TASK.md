@@ -8,17 +8,13 @@ KNOWLEDGE BRAINS: Ada, Beast
 
 **Until `STATUS: STOP`, keep working.**
 
-## Codex — do this now
+## Codex — do this now (Cloud)
 
-Paste `anshux/CODEX_COMMAND.md` into Codex with cwd `C:\Users\Anshu\semicolon`.
+Go to https://chatgpt.com/codex/cloud  
+Repo: **anshumansribeast-prog/semicolon**  
+Paste: `anshux/CODEX_CLOUD_TASK.md`
 
-Make Semicolon **simple again**:
-
-- Remove Code Generator (broken) and Practice “Run generated” (broken)
-- Fix Ada **mobile** chat so the box is large enough to type (`font-size: 16px`, tall textarea)
-- Apply `anshux/patches/semicolon-simple-again.patch`
-
-Do **not** rebuild the generator.
+Make Semicolon simple (no Generator). Fix mobile Ada. Do not rebuild the generator.
 
 ## Cursor — after Codex deploys
 

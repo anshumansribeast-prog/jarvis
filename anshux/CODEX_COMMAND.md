@@ -1,4 +1,18 @@
-# Codex command — paste this into Codex (open `C:\Users\Anshu\semicolon`)
+# Codex commands
+
+## Codex Cloud (use this)
+
+Open **https://chatgpt.com/codex/cloud**
+
+1. New task
+2. Repository: **`anshumansribeast-prog/semicolon`**
+3. Paste the task from `anshux/CODEX_CLOUD_TASK.md` (the block after the line)
+
+Full paste is in that file.
+
+## Local Codex (laptop folder)
+
+Only if Cloud is not used: `C:\Users\Anshu\semicolon` + `git apply` of `anshux/patches/semicolon-simple-again.patch`.
 
 You are a **main** ANSHUX agent. Loop until `STATUS: STOP` in the jarvis `AGENT_TASK.md`. Do **not** idle. Do **not** rebuild the Code Generator.
 
