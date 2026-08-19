@@ -167,6 +167,8 @@ def commander_chat(text: str, conversation_id: str | None = None) -> dict:
     if created and not planned.get("destructive"):
         process_due_tasks(limit=len(created) + 3)
     state = snapshot()
+    ids = {int(t["id"]) for t in created}
+    created = [t for t in state["tasks"] if int(t["id"]) in ids]
     msg = {
         "role": "commander",
         "kind": "plan",
