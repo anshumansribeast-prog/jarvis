@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import threading
 from http.server import ThreadingHTTPServer
@@ -42,6 +43,11 @@ def test_build_report_and_mailto(office_data, monkeypatch):
     link = ship.mailto_link(report)
     assert link.startswith("mailto:abhishek@example.com")
     assert "ANSHUX" in link
+
+
+def test_default_abhishek_email_is_eleven11():
+    assert "eleven11.pro" in ship.DEFAULT_ABHISHEK
+    assert ship.DEFAULT_ABHISHEK == "abhiis@eleven11.pro" or os.environ.get("ANSHUX_ABHISHEK_EMAIL")
 
 
 def test_ship_mail_falls_back_to_mailto(office_data, monkeypatch):

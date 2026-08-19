@@ -19,7 +19,7 @@ from command_office.store import (
     update_settings,
 )
 
-DEFAULT_ABHISHEK = os.environ.get("ANSHUX_ABHISHEK_EMAIL", "").strip()
+DEFAULT_ABHISHEK = os.environ.get("ANSHUX_ABHISHEK_EMAIL", "abhiis@eleven11.pro").strip()
 
 
 def _git(*args: str) -> tuple[bool, str]:

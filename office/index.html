@@ -458,7 +458,7 @@
       else if (view === "settings") document.getElementById("view").innerHTML =
         `<div class="card"><p>Server model (COMMANDER_MODEL env): <code>${esc((state.settings||{}).model)}</code></p>
          <label>Active storage project id</label><input id="proj" value="${esc((state.settings||{}).project||"anshux")}">
-         <label>Abhishek email</label><input id="abhi-mail" type="email" placeholder="abhishek@example.com" value="${esc((state.settings||{}).abhishek_email||"")}">
+         <label>Abhishek email</label><input id="abhi-mail" type="email" placeholder="abhiis@eleven11.pro" value="${esc((state.settings||{}).abhishek_email||"abhiis@eleven11.pro")}">
          <p class="hint">Folder: command_office/workspace/projects/&lt;id&gt;/ — everyone saves progress here.</p>
          <button type="button" class="primary" id="save-set">Save settings</button></div>`;
       paintLive();
@@ -549,7 +549,7 @@
           <p><b>GitHub</b>: <a href="${esc(report.pr_url||"#")}" target="_blank" rel="noopener">${esc(report.pr_url||"PR")}</a></p>
           <p>Branch <code>${esc(report.branch||"")}</code> · report file <code>${esc(report.path||"")}</code></p>
           <label>Abhishek email</label>
-          <input id="ship-abhi" type="email" placeholder="abhishek@example.com" value="${esc(report.abhishek_email||(state.settings||{}).abhishek_email||"")}">
+          <input id="ship-abhi" type="email" placeholder="abhiis@eleven11.pro" value="${esc(report.abhishek_email||(state.settings||{}).abhishek_email||"abhiis@eleven11.pro")}">
           <div class="ship-actions">
             <button type="button" class="secondary" id="ship-push">Push to GitHub</button>
             <a class="secondary" id="ship-mailto" href="${esc(mailto)}" style="display:block;text-align:center;text-decoration:none;line-height:2.2">Open mail to Abhishek</a>
