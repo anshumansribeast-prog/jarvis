@@ -1,10 +1,21 @@
 # ANSHUX board
 
-Open **`anshux.code-workspace`** (double-click `open_anshux.bat` on Windows). You should see:
+**Desktop icon (Windows):** double-click `make_desktop_icon.bat` once. That puts **ANSHUX** on the Desktop. Double-click it to open the work area.
 
-- **ANSHUX · board** — this repo (commands live here)
-- **Team cards** — `.team/` role files
-- **Semicolon** / **Cosmos** — sister sites if they sit next to this folder
+In a terminal, type this **with no spaces in the filename**:
+
+```powershell
+cd C:\Users\Anshu\anshux
+python team.py
+```
+
+Wrong: `python team . py` — Python then looks for a file named `team. py` and fails.
+
+Open **`anshux.code-workspace`** (or `open_anshux.bat`). You should see:
+
+- **ANSHUX-board** — this repo (commands live here)
+- **team-cards** — `.team/` role files
+- **semicolon** / **cosmos** — sister sites if they sit next to this folder
 
 On open, the **ANSHUX: board** task prints what is ON/off (Ollama, Ada, OpenCode, Aider, clones).
 

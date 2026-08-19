@@ -10,4 +10,4 @@ ANSHUX team. OpenCode auto-reads `AGENTS.md` from `C:\Users\Anshu\anshux` (plus 
 | **Continue** | Same workspace | Completions / chat |
 | **Ada** | `python team.py ada` | Semicolon brain |
 
-Open the **work area** `anshux.code-workspace` (or `open_anshux.bat`). Sidebar: ANSHUX-board, team-cards, semicolon, cosmos. Commands: `python team.py` (menu) or Terminal → Run Task.
+Open the **work area** `anshux.code-workspace` (or Desktop **ANSHUX** after `make_desktop_icon.bat`). Sidebar: ANSHUX-board, team-cards, semicolon, cosmos. Commands: `python team.py` (no spaces) or Terminal → Run Task.
