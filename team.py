@@ -18,6 +18,7 @@ import shutil
 import socket
 import subprocess
 import sys
+import time
 import urllib.error
 import urllib.request
 import webbrowser
@@ -25,6 +26,27 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
+DESK_IDS = ("opencode", "cursor", "aider", "continue", "cline", "ada", "beast")
+EVERYONE_SEATS = {"all", "everyone", "everybody", "*", "team", "desks"}
+DEFAULT_DESK_TASKS = {
+    "opencode": "Architect: inspect both sites and keep every desk busy.",
+    "cursor": "Checker: pytest; confirm nobody is idle.",
+    "aider": "Builder: restore Ada API + Concepts on Semicolon PR #8.",
+    "continue": "Editor: open anshux.code-workspace and work the floor task.",
+    "cline": "Help Aider on Semicolon. Stay on the floor.",
+    "ada": "Tutor on pages/ada.html — teach only, no git.",
+    "beast": "Tutor on cosmos.punah.pro — astronomy only.",
+}
+DESK_SLICE = {
+    "opencode": "plan and assign",
+    "cursor": "check and test",
+    "aider": "implement Semicolon fixes",
+    "continue": "edit in the workspace",
+    "cline": "backup builder",
+    "ada": "teach on Ada chat",
+    "beast": "teach on Cosmos",
+}
+_OFFICE_NET_CACHE: dict = {"at": 0.0, "sites": [], "prs": []}
 SITES = (
     ("Semicolon", "https://semicolon.punah.pro/"),
     ("Ada chat", "https://semicolon.punah.pro/pages/ada.html"),
@@ -200,10 +222,13 @@ def _gh_prs(repo: str) -> list[dict]:
     return rows
 
 
-def collect_office_state() -> dict:
-    oc = bool(which("opencode"))
-    ollama = tcp_open("127.0.0.1", 11434)
-    ada = tcp_open("127.0.0.1", 8420)
+def _sites_and_prs(*, network: bool = True) -> tuple[list, list]:
+    now = time.time()
+    fresh = now - float(_OFFICE_NET_CACHE.get("at") or 0) < 60
+    if (not network or fresh) and _OFFICE_NET_CACHE.get("sites"):
+        return _OFFICE_NET_CACHE["sites"], _OFFICE_NET_CACHE["prs"]
+    if not network:
+        return _OFFICE_NET_CACHE.get("sites") or [], _OFFICE_NET_CACHE.get("prs") or []
     sites = [{"name": n, "url": u, "code": http_status(u)} for n, u in SITES]
     prs = _gh_prs("anshumansribeast-prog/semicolon")
     cosmos_prs = _gh_prs("anshumansribeast-prog/cosmos")
@@ -217,6 +242,17 @@ def collect_office_state() -> dict:
         })
     else:
         prs.extend(cosmos_prs)
+    _OFFICE_NET_CACHE["at"] = now
+    _OFFICE_NET_CACHE["sites"] = sites
+    _OFFICE_NET_CACHE["prs"] = prs
+    return sites, prs
+
+
+def collect_office_state(*, network: bool = True) -> dict:
+    oc = bool(which("opencode"))
+    ollama = tcp_open("127.0.0.1", 11434)
+    ada = tcp_open("127.0.0.1", 8420)
+    sites, prs = _sites_and_prs(network=network)
     desks = [
         {
             "id": "opencode",
@@ -269,11 +305,22 @@ def collect_office_state() -> dict:
         },
     ]
     assigned = load_assignments()
+    filled = False
+    for desk_id in DESK_IDS:
+        if not str(assigned.get(desk_id) or "").strip():
+            assigned[desk_id] = DEFAULT_DESK_TASKS[desk_id]
+            filled = True
+    if filled:
+        save_assignments(assigned)
+    idle = []
     for desk in desks:
         extra = assigned.get(desk["id"])
         if extra:
             desk["task"] = extra
             desk["assigned"] = True
+            desk["status"] = "on"
+        else:
+            idle.append(desk["id"])
     return {
         "updated": _dt.datetime.now(tz=_dt.timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
         "architect": "OpenCode",
@@ -285,6 +332,7 @@ def collect_office_state() -> dict:
         "sites": sites,
         "prs": prs,
         "chat": load_chat()[-40:],
+        "idle": idle,
         "assignments": assigned,
     }
 
@@ -320,10 +368,50 @@ def assign_task(seat: str, task: str) -> dict:
     if not seat or not task:
         raise ValueError("Need a desk id and a task")
     data = load_assignments()
-    data[seat] = task
+    if seat in EVERYONE_SEATS:
+        for desk in DESK_IDS:
+            data[desk] = f"{task} — you: {DESK_SLICE[desk]}"
+    elif seat not in DESK_IDS:
+        raise ValueError("Unknown desk. Use everyone or: " + ", ".join(DESK_IDS))
+    else:
+        data[seat] = task
+        for desk in DESK_IDS:
+            if desk != seat:
+                data[desk] = f"{DEFAULT_DESK_TASKS[desk]} | also: {task}"
     save_assignments(data)
+    if not os.environ.get("PYTEST_CURRENT_TEST"):
+        try:
+            _queue_command_work(task)
+        except Exception:
+            pass
     write_office_state()
     return data
+
+
+def _queue_command_work(goal: str) -> None:
+    """Queue Commander agents so they are not left Idle after a floor assign."""
+    from command_office.orchestrator import create_tasks_from_plan
+    from command_office.store import snapshot
+
+    snap = snapshot()
+    busy = {
+        t.get("agent")
+        for t in snap.get("tasks") or []
+        if t.get("status") in {"QUEUED", "ASSIGNED", "RUNNING", "WAITING"}
+    }
+    specs = []
+    for agent in snap.get("agents") or []:
+        if agent["id"] in busy:
+            continue
+        specs.append({
+            "title": (goal[:56] or "Floor work") + f" [{agent['id']}]",
+            "description": goal,
+            "agent": agent["id"],
+            "priority": "normal",
+            "depends": [],
+        })
+    if specs:
+        create_tasks_from_plan({"kind": "plan", "destructive": False, "tasks": specs})
 
 
 def load_chat() -> list:
@@ -372,7 +460,7 @@ def architect_chat(text: str) -> dict:
 
 def write_office_state() -> Path:
     path = _office_dir() / "state.json"
-    path.write_text(json.dumps(collect_office_state(), indent=2), encoding="utf-8")
+    path.write_text(json.dumps(collect_office_state(network=False), indent=2), encoding="utf-8")
     return path
 
 
@@ -426,7 +514,7 @@ class OfficeHandler(SimpleHTTPRequestHandler):
             except ValueError as exc:
                 self._json(400, {"ok": False, "error": str(exc)})
                 return
-            self._json(200, {"ok": True, "office": collect_office_state()})
+            self._json(200, {"ok": True, "office": collect_office_state(network=False)})
             return
         if path == "/api/chat":
             text = str(body.get("text") or "").strip()
@@ -434,7 +522,7 @@ class OfficeHandler(SimpleHTTPRequestHandler):
                 self._json(400, {"ok": False, "error": "empty"})
                 return
             result = architect_chat(text)
-            self._json(200, {"ok": True, **result, "office": collect_office_state()})
+            self._json(200, {"ok": True, **result, "office": collect_office_state(network=False)})
             return
         self._json(404, {"ok": False})
 

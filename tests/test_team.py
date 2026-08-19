@@ -67,6 +67,24 @@ def test_assign_task(monkeypatch, tmp_path):
     assert "Ada API" in data["assignments"]["aider"]
     desk = next(d for d in data["desks"] if d["id"] == "aider")
     assert desk.get("assigned") is True
+    for seat in team.DESK_IDS:
+        assert data["assignments"].get(seat)
+        member = next(d for d in data["desks"] if d["id"] == seat)
+        assert member["status"] == "on"
+
+
+def test_assign_everyone(monkeypatch, tmp_path):
+    monkeypatch.setattr(team, "ROOT", tmp_path)
+    monkeypatch.setattr(team, "http_status", lambda url, timeout=4.0: "200")
+    monkeypatch.setattr(team, "_gh_prs", lambda repo: [])
+    monkeypatch.setattr(team, "which", lambda cmd: None)
+    monkeypatch.setattr(team, "tcp_open", lambda *a, **k: False)
+    team.assign_task("everyone", "Ship Semicolon Ada restore")
+    data = team.collect_office_state(network=False)
+    assert not data["idle"]
+    for seat in team.DESK_IDS:
+        assert "Ship Semicolon Ada restore" in data["assignments"][seat]
+        assert next(d for d in data["desks"] if d["id"] == seat)["status"] == "on"
 
 
 def test_architect_chat_queues_without_opencode(monkeypatch, tmp_path):
@@ -94,6 +112,7 @@ def test_office_site_serves_chat_panel(monkeypatch, tmp_path):
         home = urlreq.urlopen(f"http://127.0.0.1:{port}/", timeout=5).read().decode("utf-8")
         assert "OpenCode chat panel" in home
         assert "Assign a task" in home
+        assert "Everyone (no idle desks)" in home
         assert "COMMANDER" in home
         assert "Office floor" in home
         req = urlreq.Request(
@@ -105,6 +124,16 @@ def test_office_site_serves_chat_panel(monkeypatch, tmp_path):
         chat = json.loads(urlreq.urlopen(req, timeout=5).read().decode("utf-8"))
         assert chat["ok"] is True
         assert chat["chat"]
+        assign = urlreq.Request(
+            f"http://127.0.0.1:{port}/api/assign",
+            data=json.dumps({"seat": "everyone", "task": "Keep LOOP moving"}).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        assigned = json.loads(urlreq.urlopen(assign, timeout=8).read().decode("utf-8"))
+        assert assigned["ok"] is True
+        assert not assigned["office"]["idle"]
+        assert "Keep LOOP moving" in assigned["office"]["assignments"]["ada"]
     finally:
         httpd.shutdown()
 

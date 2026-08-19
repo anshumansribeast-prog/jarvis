@@ -49,6 +49,11 @@
     .card .st { float: right; font-size: .7rem; letter-spacing: .1em; }
     .composer { display: none; grid-template-columns: 1fr auto; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--line); }
     .composer.on { display: grid; }
+    .assignbar {
+      display: grid; grid-template-columns: 160px 1fr auto; gap: 8px; align-items: end;
+      padding: 10px 16px; border-bottom: 1px solid var(--line); background: #0c141c;
+    }
+    @media (max-width: 800px) { .assignbar { grid-template-columns: 1fr; } }
     textarea, input, select {
       width: 100%; background: #0b1016; color: var(--ink); border: 1px solid var(--line);
       padding: 8px; font: inherit;
@@ -110,6 +115,27 @@
         </div>
         <div><span class="dot"></span>COMMANDER online · OpenCode architect</div>
       </div>
+      <form class="assignbar" id="assign-form">
+        <div>
+          <label for="seat">Assign a task</label>
+          <select id="seat">
+            <option value="everyone" selected>Everyone (no idle desks)</option>
+            <option value="opencode">OpenCode</option>
+            <option value="cursor">Cursor</option>
+            <option value="aider">Aider</option>
+            <option value="continue">Continue</option>
+            <option value="cline">Cline</option>
+            <option value="ada">Ada</option>
+            <option value="beast">Beast</option>
+          </select>
+        </div>
+        <div>
+          <label for="task">Task</label>
+          <input id="task" required placeholder="What should the whole floor do now?">
+        </div>
+        <button class="primary" type="submit">Assign</button>
+      </form>
+      <p class="err" id="assign-err"></p>
       <div id="view"></div>
       <p class="err" id="err"></p>
       <form class="composer" id="cmd-form">
@@ -160,7 +186,9 @@
         `<h2>Live command center</h2>
          <div class="row"><span>Commander</span><span>${statusDot("Online")}Online</span></div>
          <div class="row"><span>OpenCode</span><span>${statusDot("work")}Architect</span></div>
-         <h2>Agents</h2>` +
+         <h2>Floor desks</h2>` +
+        (office.desks || []).map(d => `<div class="row"><span>${esc(d.name)}</span><span>${statusDot(d.status)}${esc(d.status || "idle")}</span></div>`).join("") +
+        `<h2>Agents</h2>` +
         agents.map(a => `<div class="row"><span>${esc(a.name)}</span><span>${statusDot(a.status)}${esc(a.status || "Idle")}</span></div>`).join("") +
         `<h2>Tasks</h2>` +
         (tasks.length ? tasks.map(t => `<div class="row"><span>#${esc(t.id)} ${esc(t.title)}</span><span>${esc(t.status)}</span></div>`).join("") : `<p class="hint">No Commander tasks yet.</p>`) +
@@ -188,28 +216,16 @@
         ? chat.map(m => `<div class="${esc(m.who)}"><strong>${esc(m.who)}</strong> ${esc(m.t || "")}<br>${esc(m.text)}</div>`).join("")
         : `<div class="opencode"><strong>opencode</strong><br>Architect online. Type below. Every loop member must have a desk and a task.</div>`;
       document.getElementById("view").innerHTML = `
-        <div class="split">
-          <div>
-            <h2>OpenCode chat panel</h2>
-            <div id="oc-log">${log}</div>
-            <p class="err" id="chat-err"></p>
-            <form id="oc-form">
-              <label for="oc-msg">Message to OpenCode</label>
-              <textarea id="oc-msg" required placeholder="Inspect both sites and assign tasks to Aider and Ada"></textarea>
-              <button class="secondary" type="submit">Send to OpenCode</button>
-            </form>
-          </div>
-          <div>
-            <h2>Assign a task</h2>
-            <form id="assign-form">
-              <label for="seat">Desk</label>
-              <select id="seat"></select>
-              <label for="task">Task</label>
-              <input id="task" required placeholder="What should they do now?">
-              <button class="secondary" type="submit">Assign to that desk</button>
-            </form>
-            <p class="err" id="assign-err"></p>
-          </div>
+        <div>
+          <h2>OpenCode chat panel</h2>
+          <div id="oc-log">${log}</div>
+          <p class="err" id="chat-err"></p>
+          <form id="oc-form">
+            <label for="oc-msg">Message to OpenCode</label>
+            <textarea id="oc-msg" required placeholder="Inspect both sites and assign tasks to Aider and Ada"></textarea>
+            <button class="secondary" type="submit">Send to OpenCode</button>
+          </form>
+          <p class="hint">Use the Assign a task bar at the top. Default is Everyone so nobody sits idle.</p>
         </div>`;
       fillSeats();
       const el = document.getElementById("oc-log");
@@ -219,13 +235,15 @@
       const seat = document.getElementById("seat");
       if (!seat) return;
       const desks = office.desks || [];
-      const cur = seat.value;
-      const opts = desks.length ? desks : [
-        {id:"opencode",name:"OpenCode"},{id:"cursor",name:"Cursor"},{id:"aider",name:"Aider"},
-        {id:"continue",name:"Continue"},{id:"cline",name:"Cline"},{id:"ada",name:"Ada"},{id:"beast",name:"Beast"}
-      ];
+      const cur = seat.value || "everyone";
+      const opts = [{id:"everyone", name:"Everyone (no idle desks)"}].concat(
+        desks.length ? desks : [
+          {id:"opencode",name:"OpenCode"},{id:"cursor",name:"Cursor"},{id:"aider",name:"Aider"},
+          {id:"continue",name:"Continue"},{id:"cline",name:"Cline"},{id:"ada",name:"Ada"},{id:"beast",name:"Beast"}
+        ]
+      );
       seat.innerHTML = opts.map(d => `<option value="${esc(d.id)}">${esc(d.name)}</option>`).join("");
-      if (cur) seat.value = cur;
+      seat.value = opts.some(d => d.id === cur) ? cur : "everyone";
     }
     function renderFloor() {
       const desks = office.desks || [];
@@ -290,6 +308,7 @@
          <label>Project id</label><input id="proj" value="${esc((state.settings||{}).project||"anshux")}">
          <button type="button" class="primary" id="save-set">Save project</button></div>`;
       paintLive();
+      fillSeats();
     }
     async function loadCommand() {
       const r = await fetch("/api/command?t=" + Date.now());
@@ -307,7 +326,10 @@
       try {
         await Promise.all([loadCommand(), loadOffice()]);
         err.textContent = "";
-        paintView();
+        const typing = document.activeElement && ["INPUT","TEXTAREA","SELECT"].includes(document.activeElement.tagName);
+        fillSeats();
+        paintLive();
+        if (!typing) paintView();
       } catch (e) {
         err.textContent = "Keep python team.py office running. Chat APIs are on this same page.";
       }
@@ -343,34 +365,38 @@
         document.getElementById("err").textContent = String(e);
       }
     });
+    document.getElementById("assign-form").addEventListener("submit", async (ev) => {
+      ev.preventDefault();
+      document.getElementById("assign-err").textContent = "Assigning…";
+      try {
+        const data = await post("/api/assign", {
+          seat: document.getElementById("seat").value,
+          task: document.getElementById("task").value.trim()
+        });
+        if (data.office) office = data.office;
+        document.getElementById("task").value = "";
+        document.getElementById("assign-err").textContent = "";
+        view = "floor";
+        paintView();
+      } catch (e) {
+        document.getElementById("assign-err").textContent = String(e);
+      }
+    });
     document.getElementById("view").addEventListener("submit", async (ev) => {
       const oc = ev.target.closest("#oc-form");
-      const as = ev.target.closest("#assign-form");
-      if (!oc && !as) return;
+      if (!oc) return;
       ev.preventDefault();
       try {
-        if (oc) {
-          const text = document.getElementById("oc-msg").value.trim();
-          if (!text) return;
-          document.getElementById("oc-msg").value = "";
-          document.getElementById("chat-err").textContent = "Sending to OpenCode…";
-          const data = await post("/api/chat", { text });
-          if (data.office) office = data.office;
-          document.getElementById("chat-err").textContent = "";
-          paintView();
-        }
-        if (as) {
-          document.getElementById("assign-err").textContent = "";
-          const data = await post("/api/assign", {
-            seat: document.getElementById("seat").value,
-            task: document.getElementById("task").value.trim()
-          });
-          if (data.office) office = data.office;
-          document.getElementById("task").value = "";
-          paintView();
-        }
+        const text = document.getElementById("oc-msg").value.trim();
+        if (!text) return;
+        document.getElementById("oc-msg").value = "";
+        document.getElementById("chat-err").textContent = "Sending to OpenCode…";
+        const data = await post("/api/chat", { text });
+        if (data.office) office = data.office;
+        document.getElementById("chat-err").textContent = "";
+        paintView();
       } catch (e) {
-        const slot = document.getElementById(oc ? "chat-err" : "assign-err");
+        const slot = document.getElementById("chat-err");
         if (slot) slot.textContent = String(e);
       }
     });
