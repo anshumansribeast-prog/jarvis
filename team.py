@@ -5,7 +5,7 @@
   python team.py check the sites
   python team.py sites
   python team.py office          office floor (see the team)
-  python team.py opencode        site inspector (both sites + PRs)
+  python team.py opencode        architect of the office (sites + PRs)
   python team.py menu            numbered list (old)
 """
 
@@ -156,7 +156,7 @@ def cmd_status() -> int:
     print("ANSHUX board — systems")
     print("Workspace:", ROOT)
     print()
-    print("  OpenCode (MAIN) ", mark(bool(which("opencode"))), which("opencode") or "install: npm install -g opencode-ai")
+    print("  OpenCode (ARCH) ", mark(bool(which("opencode"))), which("opencode") or "install: npm install -g opencode-ai")
     print("  Aider           ", mark(bool(which("aider"))), which("aider") or "install: anshux/AIDER_START.md")
     print("  Ollama :11434   ", mark(ollama), "http://127.0.0.1:11434")
     print("  Ada    :8420    ", mark(ada), "python team.py ada")
@@ -221,15 +221,15 @@ def collect_office_state() -> dict:
         {
             "id": "opencode",
             "name": "OpenCode",
-            "role": "Site inspector (in charge)",
-            "task": "Inspect Semicolon + Cosmos live pages and PRs. Paste anshux/OPENCODE_TASK.md",
+            "role": "Architect of the office",
+            "task": "Design the floor; inspect Semicolon + Cosmos live and PRs; assign work. anshux/OPENCODE_TASK.md",
             "status": "on" if oc else "idle",
         },
         {
             "id": "cursor",
             "name": "Cursor",
             "role": "Office check",
-            "task": "Confirm inspector ran; pytest; update LOOP.md",
+            "task": "Check the architect’s drawing; pytest; refresh office state",
             "status": "on",
         },
         {
@@ -263,6 +263,7 @@ def collect_office_state() -> dict:
     ]
     return {
         "updated": _dt.datetime.now(tz=_dt.timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
+        "architect": "OpenCode",
         "inspector": "OpenCode",
         "ollama": ollama,
         "desks": desks,
@@ -282,7 +283,7 @@ def write_office_state() -> Path:
 def cmd_office() -> int:
     path = write_office_state()
     print("Office snapshot:", path)
-    print("OpenCode is inspection in charge of Semicolon + Cosmos (live + PRs).")
+    print("OpenCode is architect of the office (layout, both sites, both PRs).")
     html = ROOT / "office" / "index.html"
     if not sys.stdin.isatty() or os.environ.get("ANSHUX_OFFICE_NO_SERVE"):
         print("View:", html)
@@ -405,7 +406,7 @@ def cmd_help() -> int:
     print("  check the sites     ping Semicolon + Cosmos")
     print("  status              board")
     print("  office              see the team (office floor)")
-    print("  opencode            SITE INSPECTOR TUI (Semicolon + Cosmos PRs)")
+    print("  opencode            ARCHITECT TUI (office + both sites + PRs)")
     print("  aider / ada / jarvis / pytest / start-all")
     print("  continue            open anshux.code-workspace (Continue in the editor)")
     print("  q                   quit")
@@ -421,7 +422,7 @@ MENU = [
     ("status", "Show all systems (board)", cmd_status),
     ("sites", "Ping live Semicolon + Cosmos", cmd_sites),
     ("office", "Open the office floor (see the team)", cmd_office),
-    ("opencode", "Start OpenCode (site inspector)", cmd_opencode),
+    ("opencode", "Start OpenCode (architect of the office)", cmd_opencode),
     ("aider", "Start Aider", cmd_aider),
     ("ada", "Start Ada (Ollama tutor)", cmd_ada),
     ("jarvis", "Start Jarvis voice", cmd_jarvis),
@@ -451,7 +452,7 @@ def print_banner() -> None:
     ada = "ON" if tcp_open("127.0.0.1", 8420) else "off"
     print()
     print("=" * 64)
-    print("  ANSHUX work area     INSPECT OpenCode     CHECK Cursor")
+    print("  ANSHUX work area     ARCHITECT OpenCode     CHECK Cursor")
     print("  Terminal UI like Codex / Claude Code. Type here; stay in this prompt.")
     print("=" * 64)
     print(f"  OpenCode {oc}   Ollama {ol}   Ada {ada}   {ROOT}")

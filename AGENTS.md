@@ -2,7 +2,7 @@
 
 Workspace: `C:\Users\Anshu\anshux` (this git repo).
 
-**OpenCode is site inspection in charge** (Semicolon + Cosmos, live and PRs). Aider implements. Cursor checks the office. Ada/Beast are tutors. Codex is **off**.
+**OpenCode is architect of the office** (floor plan, Semicolon + Cosmos live and PRs). Aider builds. Cursor checks the drawing. Codex is **off**.
 
 | Agent | Start | Auto-reads |
 | --- | --- | --- |

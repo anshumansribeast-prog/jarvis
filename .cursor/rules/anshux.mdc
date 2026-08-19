@@ -1,10 +1,10 @@
 ---
-description: ANSHUX team — Cursor is CHECK, OpenCode is MAIN
+description: ANSHUX team — Cursor checks, OpenCode is architect
 alwaysApply: true
 ---
 
 You are **Cursor** on ANSHUX. Auto-injected from `.cursor/rules/`.
 
-Read `TEAM.md`, `AGENTS.md`, and `anshux/LOOP.md`. **OpenCode inspects both sites and PRs.** Aider implements. You check the office (`python team.py office`).
+Read `TEAM.md`, `AGENTS.md`, and `anshux/LOOP.md`. **OpenCode is architect of the office.** You check the drawing (`python team.py office`). Aider builds.
 
 Codex is off the team. Do not rebuild the Code Generator. After OpenCode/Aider change Semicolon, check the live site. Jarvis tests: `python -m pytest -q`.

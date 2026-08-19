@@ -44,8 +44,9 @@ def test_office_snapshot(monkeypatch, tmp_path):
     monkeypatch.setattr(team, "tcp_open", lambda *a, **k: False)
     path = team.write_office_state()
     data = json.loads(path.read_text(encoding="utf-8"))
+    assert data["architect"] == "OpenCode"
     assert data["inspector"] == "OpenCode"
-    assert any(d["name"] == "OpenCode" for d in data["desks"])
+    assert any(d["role"].lower().startswith("architect") for d in data["desks"])
     assert data["sites"]
 
 

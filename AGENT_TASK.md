@@ -3,24 +3,24 @@
 PROJECT: ANSHUX
 STATUS: LOOP
 
-Office floor (see the team): **`python team.py office`**
-Roles: **`anshux/LOOP.md`**
+**Architect of the office: OpenCode**  
+Drawing: `python team.py office`  
+Roles: `anshux/LOOP.md`
 
-INSPECT (in charge of both sites + PRs): **OpenCode**  
-IMPLEMENT: **Aider**  
-CHECK office: **Cursor**  
+ARCHITECT (layout + inspect both sites/PRs): **OpenCode**  
+BUILD: **Aider**  
+CHECK drawing: **Cursor**  
 EDITOR: Continue  
 BRAINS: Ada, Beast  
-OUT: Codex, Claude Code
 
-## OpenCode now (inspector — do not idle)
+## OpenCode now
 
-Inspect Semicolon **and** Cosmos, live **and** PRs. Paste `anshux/OPENCODE_TASK.md`. Ollama only.
+Act as architect. Paste `anshux/OPENCODE_TASK.md`. Ollama only.
 
-## Aider now (implement — do not idle)
+## Aider now
 
-Restore Ada API on Semicolon PR #8. Paste `anshux/AIDER_TASK.md`.
+Build PR #8 Ada restore. `anshux/AIDER_TASK.md`.
 
 ## Cursor now
 
-Refresh the office, pytest, confirm OpenCode inspected both sites.
+Check the architect’s office drawing, pytest, both live sites.

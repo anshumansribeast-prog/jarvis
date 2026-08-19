@@ -9,7 +9,7 @@ cd C:\Users\Anshu\anshux
 python team.py office
 ```
 
-Then the floor is at http://127.0.0.1:8765/ (desks + wall screens for both sites and PRs).
+Then the drawing is at http://127.0.0.1:8765/ — **OpenCode’s architect table** plus drafting desks and site/PR sheets.
 
 In a terminal (no spaces in `team.py`):
 
@@ -17,7 +17,7 @@ In a terminal (no spaces in `team.py`):
 python team.py
 ```
 
-At `anshux>` type `office` or `opencode` (OpenCode **inspects** Semicolon + Cosmos).
+At `anshux>` type `office` or `opencode` (OpenCode is **architect of the office**).
 
 You get an `anshux>` prompt that stays open (like Codex / Claude Code). Type:
 

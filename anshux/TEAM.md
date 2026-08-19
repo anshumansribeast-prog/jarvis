@@ -12,9 +12,9 @@ How we start:
 
 | Seat | Agent | Role | Status |
 | --- | --- | --- | --- |
-| **MAIN** | **OpenCode** (terminal) | Implement Semicolon / Jarvis | ON — `anshux/OPENCODE_START.md`. Semicolon PR: https://github.com/anshumansribeast-prog/semicolon/pull/8 |
-| **CHECK** | **Cursor** | Board, pytest, live site | ON (this session) |
-| **FREE 1** | **Aider + Ollama** | Backup implementer, $0 | Ready: `anshux/AIDER_START.md` |
+| **ARCHITECT** | **OpenCode** | Office architect — both sites + PRs | `anshux/OPENCODE_TASK.md` |
+| **CHECK** | **Cursor** | Check the drawing | this session |
+| **BUILD** | **Aider + Ollama** | Implement Semicolon restore | `anshux/AIDER_TASK.md` |
 | **FREE 2** | **Cline + Ollama** | Optional VS Code agent, $0 | Optional |
 | **FREE 3** | **Continue + Ollama** | Completions only | Optional |
 | Brains | **Ada** / **Beast** | Semicolon / Cosmos knowledge | Docs only |
