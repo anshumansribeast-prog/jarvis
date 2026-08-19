@@ -47,7 +47,29 @@ def test_office_snapshot(monkeypatch, tmp_path):
     assert data["architect"] == "OpenCode"
     assert data["inspector"] == "OpenCode"
     assert any(d["role"].lower().startswith("architect") for d in data["desks"])
-    assert data["sites"]
+    assert "cline" in data["members"]
+    assert data["loop"]
+
+
+def test_assign_task(monkeypatch, tmp_path):
+    monkeypatch.setattr(team, "ROOT", tmp_path)
+    monkeypatch.setattr(team, "http_status", lambda url, timeout=4.0: "200")
+    monkeypatch.setattr(team, "_gh_prs", lambda repo: [])
+    monkeypatch.setattr(team, "which", lambda cmd: None)
+    monkeypatch.setattr(team, "tcp_open", lambda *a, **k: False)
+    assert team.main(["assign", "aider", "fix", "Ada", "API"]) == 0
+    data = team.collect_office_state()
+    assert "Ada API" in data["assignments"]["aider"]
+    desk = next(d for d in data["desks"] if d["id"] == "aider")
+    assert desk.get("assigned") is True
+
+
+def test_architect_chat_queues_without_opencode(monkeypatch, tmp_path):
+    monkeypatch.setattr(team, "ROOT", tmp_path)
+    monkeypatch.setattr(team, "which", lambda cmd: None)
+    result = team.architect_chat("inspect both sites")
+    assert "queued" in result["reply"].lower() or "PATH" in result["reply"]
+    assert result["chat"][-1]["who"] == "opencode"
 
 
 def test_find_project_semicolon(tmp_path, monkeypatch):

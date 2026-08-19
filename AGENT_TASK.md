@@ -11,11 +11,17 @@ ARCHITECT (layout + inspect both sites/PRs): **OpenCode**
 BUILD: **Aider**  
 CHECK drawing: **Cursor**  
 EDITOR: Continue  
+OPTIONAL BUILD: Cline  
 BRAINS: Ada, Beast  
+
+**LOOP reminder:** every office member (OpenCode, Cursor, Aider, Continue, Cline, Ada, Beast) must have a desk and a task.
+
+Assign tasks on the floor or: `python team.py assign <desk> <task>`.
+Chat with OpenCode in the office panel.
 
 ## OpenCode now
 
-Act as architect. Paste `anshux/OPENCODE_TASK.md`. Ollama only.
+Act as architect. Paste `anshux/OPENCODE_TASK.md`. Assign every desk. Ollama only.
 
 ## Aider now
 

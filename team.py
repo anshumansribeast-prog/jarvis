@@ -222,20 +222,20 @@ def collect_office_state() -> dict:
             "id": "opencode",
             "name": "OpenCode",
             "role": "Architect of the office",
-            "task": "Design the floor; inspect Semicolon + Cosmos live and PRs; assign work. anshux/OPENCODE_TASK.md",
+            "task": "Design the floor; inspect Semicolon + Cosmos; assign tasks in the office chat.",
             "status": "on" if oc else "idle",
         },
         {
             "id": "cursor",
             "name": "Cursor",
-            "role": "Office check",
-            "task": "Check the architect’s drawing; pytest; refresh office state",
+            "role": "Checker",
+            "task": "Check the architect’s drawing; pytest; every loop member is on the floor.",
             "status": "on",
         },
         {
             "id": "aider",
             "name": "Aider",
-            "role": "Implementer",
+            "role": "Builder",
             "task": "Restore Ada API + Concepts on Semicolon PR #8",
             "status": "on" if which("aider") else "idle",
         },
@@ -243,14 +243,21 @@ def collect_office_state() -> dict:
             "id": "continue",
             "name": "Continue",
             "role": "Editor chat",
-            "task": "Open anshux.code-workspace",
+            "task": "Open anshux.code-workspace; follow assigned task",
+            "status": "idle",
+        },
+        {
+            "id": "cline",
+            "name": "Cline",
+            "role": "Optional builder",
+            "task": "Help Aider if OpenCode assigns you work. Stay off if unused.",
             "status": "idle",
         },
         {
             "id": "ada",
             "name": "Ada",
             "role": "Semicolon tutor",
-            "task": "pages/ada.html — do not edit git",
+            "task": "pages/ada.html — teach only, no git",
             "status": "on" if ada else "idle",
         },
         {
@@ -261,39 +268,176 @@ def collect_office_state() -> dict:
             "status": "idle",
         },
     ]
+    assigned = load_assignments()
+    for desk in desks:
+        extra = assigned.get(desk["id"])
+        if extra:
+            desk["task"] = extra
+            desk["assigned"] = True
     return {
         "updated": _dt.datetime.now(tz=_dt.timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
         "architect": "OpenCode",
         "inspector": "OpenCode",
+        "loop": "Every office member must have a desk and a task. STATUS LOOP until STOP.",
+        "members": [d["id"] for d in desks],
         "ollama": ollama,
         "desks": desks,
         "sites": sites,
         "prs": prs,
+        "chat": load_chat()[-40:],
+        "assignments": assigned,
     }
 
 
-def write_office_state() -> Path:
+def _office_dir() -> Path:
     folder = ROOT / "office"
     folder.mkdir(exist_ok=True)
-    path = folder / "state.json"
+    return folder
+
+
+def load_assignments() -> dict:
+    path = _office_dir() / "assignments.json"
+    if not path.is_file():
+        return {}
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
+def save_assignments(data: dict) -> None:
+    (_office_dir() / "assignments.json").write_text(
+        json.dumps(data, indent=2), encoding="utf-8"
+    )
+
+
+def assign_task(seat: str, task: str) -> dict:
+    seat = seat.lower().strip().replace(" ", "")
+    aliases = {"opencod": "opencode", "open": "opencode", "arch": "opencode"}
+    seat = aliases.get(seat, seat)
+    task = task.strip()
+    if not seat or not task:
+        raise ValueError("Need a desk id and a task")
+    data = load_assignments()
+    data[seat] = task
+    save_assignments(data)
+    write_office_state()
+    return data
+
+
+def load_chat() -> list:
+    path = _office_dir() / "chat.json"
+    if not path.is_file():
+        return []
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return []
+    return data if isinstance(data, list) else []
+
+
+def save_chat(rows: list) -> None:
+    (_office_dir() / "chat.json").write_text(json.dumps(rows[-80:], indent=2), encoding="utf-8")
+
+
+def architect_chat(text: str) -> dict:
+    text = text.strip()
+    now = _dt.datetime.now(tz=_dt.timezone.utc).strftime("%H:%M")
+    log = load_chat()
+    log.append({"who": "you", "text": text, "t": now})
+    exe = which("opencode")
+    if not exe:
+        reply = (
+            "Architect queued this. OpenCode is not on PATH "
+            "(npm install -g opencode-ai). Loop reminder: every office member "
+            "needs a task — assign from this floor."
+        )
+    else:
+        try:
+            out = subprocess.check_output(
+                [exe, "--model", "ollama/llama3.2:3b", "run", text],
+                cwd=str(ROOT),
+                timeout=90,
+                text=True,
+                stderr=subprocess.STDOUT,
+            )
+            reply = (out or "").strip()[-4000:] or "(empty OpenCode reply)"
+        except Exception as exc:  # noqa: BLE001
+            reply = f"OpenCode did not answer ({type(exc).__name__}). Message is in the chat log."
+    log.append({"who": "opencode", "text": reply, "t": now})
+    save_chat(log)
+    return {"reply": reply, "chat": load_chat()[-40:]}
+
+
+def write_office_state() -> Path:
+    path = _office_dir() / "state.json"
     path.write_text(json.dumps(collect_office_state(), indent=2), encoding="utf-8")
     return path
+
+
+class OfficeHandler(SimpleHTTPRequestHandler):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, directory=str(ROOT / "office"), **kwargs)
+
+    def log_message(self, fmt: str, *args) -> None:
+        return
+
+    def _json(self, code: int, payload: dict) -> None:
+        raw = json.dumps(payload).encode("utf-8")
+        self.send_response(code)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Length", str(len(raw)))
+        self.end_headers()
+        self.wfile.write(raw)
+
+    def _read_json(self) -> dict:
+        length = int(self.headers.get("Content-Length") or 0)
+        raw = self.rfile.read(length) if length else b"{}"
+        try:
+            data = json.loads(raw.decode("utf-8") or "{}")
+        except json.JSONDecodeError:
+            return {}
+        return data if isinstance(data, dict) else {}
+
+    def do_GET(self) -> None:  # noqa: N802
+        if self.path.split("?", 1)[0] == "/api/office":
+            self._json(200, collect_office_state())
+            return
+        super().do_GET()
+
+    def do_POST(self) -> None:  # noqa: N802
+        path = self.path.split("?", 1)[0]
+        body = self._read_json()
+        if path == "/api/assign":
+            try:
+                assign_task(str(body.get("seat") or ""), str(body.get("task") or ""))
+            except ValueError as exc:
+                self._json(400, {"ok": False, "error": str(exc)})
+                return
+            self._json(200, {"ok": True, "office": collect_office_state()})
+            return
+        if path == "/api/chat":
+            text = str(body.get("text") or "").strip()
+            if not text:
+                self._json(400, {"ok": False, "error": "empty"})
+                return
+            result = architect_chat(text)
+            self._json(200, {"ok": True, **result, "office": collect_office_state()})
+            return
+        self._json(404, {"ok": False})
 
 
 def cmd_office() -> int:
     path = write_office_state()
     print("Office snapshot:", path)
-    print("OpenCode is architect of the office (layout, both sites, both PRs).")
+    print("OpenCode is architect: assign tasks on the floor, chat in the panel.")
+    print("Loop: every office member (OpenCode, Cursor, Aider, Continue, Cline, Ada, Beast) must have a task.")
     html = ROOT / "office" / "index.html"
     if not sys.stdin.isatty() or os.environ.get("ANSHUX_OFFICE_NO_SERVE"):
         print("View:", html)
         return 0
-
-    class Handler(SimpleHTTPRequestHandler):
-        def __init__(self, *args, **kwargs):
-            super().__init__(*args, directory=str(ROOT / "office"), **kwargs)
-
-    httpd = ThreadingHTTPServer(("127.0.0.1", 8765), Handler)
+    httpd = ThreadingHTTPServer(("127.0.0.1", 8765), OfficeHandler)
     url = "http://127.0.0.1:8765/"
     print("Office floor:", url)
     webbrowser.open(url)
@@ -405,7 +549,8 @@ def cmd_help() -> int:
     print("Work area prompt — type a sentence or a number.")
     print("  check the sites     ping Semicolon + Cosmos")
     print("  status              board")
-    print("  office              see the team (office floor)")
+    print("  assign aider …      give that desk a task (also in the office UI)")
+    print("  office              floor + assign + OpenCode chat")
     print("  opencode            ARCHITECT TUI (office + both sites + PRs)")
     print("  aider / ada / jarvis / pytest / start-all")
     print("  continue            open anshux.code-workspace (Continue in the editor)")
@@ -478,6 +623,16 @@ def cmd_tui() -> int:
         if resolve_command(line) == "quit":
             print("bye")
             return 0
+        if line.lower().startswith("assign "):
+            parts = line.split(None, 2)
+            if len(parts) < 3:
+                print("assign <desk> <task>   desks: opencode cursor aider continue cline ada beast")
+                print()
+                continue
+            assign_task(parts[1], parts[2])
+            print("Assigned", parts[1], "→", parts[2])
+            print()
+            continue
         result = dispatch(line)
         if result is not None:
             print()
@@ -528,6 +683,14 @@ def main(argv: list[str] | None = None) -> int:
         return cmd_status()
     if argv[0] in {"menu", "--menu"}:
         return cmd_menu()
+    if argv[0] == "assign":
+        if len(argv) < 3:
+            print("python team.py assign <desk> <task>")
+            print("desks: opencode cursor aider continue cline ada beast")
+            return 1
+        assign_task(argv[1], " ".join(argv[2:]))
+        print("Assigned", argv[1], "→", " ".join(argv[2:]))
+        return 0
     joined = " ".join(argv)
     if joined in {"-h", "--help", "help"}:
         print(__doc__)

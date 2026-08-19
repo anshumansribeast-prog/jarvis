@@ -9,7 +9,13 @@ cd C:\Users\Anshu\anshux
 python team.py office
 ```
 
-Then the drawing is at http://127.0.0.1:8765/ — **OpenCode’s architect table** plus drafting desks and site/PR sheets.
+On the office page you can **assign a task** to any desk and **chat with OpenCode**. Or:
+
+```powershell
+python team.py assign aider Restore Ada API on PR 8
+```
+
+LOOP: every member (OpenCode, Cursor, Aider, Continue, Cline, Ada, Beast) must have a desk and a task.
 
 In a terminal (no spaces in `team.py`):
 

@@ -9,4 +9,7 @@ Architect duties:
 - Inspect Cosmos live: https://cosmos.punah.pro/ and /back.
 - Inspect Cosmos PRs if the repo exists; otherwise live-only.
 
-Refresh the drawing: `python team.py office`. Do not rebuild the Code Generator.
+- Assign work to every desk from the office UI or `python team.py assign <desk> <task>`.
+- Chat with Anshu in the office OpenCode panel.
+
+Do not rebuild the Code Generator.

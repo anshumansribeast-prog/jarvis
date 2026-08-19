@@ -1,20 +1,25 @@
-# ANSHUX loop — architect’s office
+# ANSHUX loop — every office member
 
 **STATUS: LOOP** until `AGENT_TASK.md` is `STOP`.
-**OpenCode is architect of the office.** Drawing: `python team.py office`.
+**The loop is incomplete if any office member is missing from the floor or has no task.**
 
-| Desk | Agent | Role | Task now |
+**Architect: OpenCode.** Drawing + assign + chat: `python team.py office`.
+
+| Desk (must exist) | Agent | Role | Default task |
 | --- | --- | --- | --- |
-| Architect’s table | **OpenCode** | Architect — layout + both sites + both PRs | `anshux/OPENCODE_TASK.md` |
-| Check | **Cursor** | Check the drawing | pytest, live pings, office snapshot |
+| Architect’s table | **OpenCode** | Architect | Inspect both sites/PRs; assign tasks in the office chat |
+| Check | **Cursor** | Checker | Confirm every member is on the floor; pytest |
 | Build | **Aider** | Builder | Restore Ada API on PR #8 |
-| Editor | **Continue** | Drafting chat | `anshux.code-workspace` |
-| Optional | **Cline** | Extra builder | Same as Aider if needed |
-| Tutor | **Ada** | Semicolon | `anshux/ADA_TASK.md` |
-| Tutor | **Beast** | Cosmos | `anshux/BEAST_TASK.md` |
+| Editor | **Continue** | Editor | `anshux.code-workspace` |
+| Optional build | **Cline** | Extra builder | Help Aider if assigned |
+| Tutor | **Ada** | Semicolon | Teach on ada.html |
+| Tutor | **Beast** | Cosmos | Astronomy on cosmos.punah.pro |
+
+Assign in the office UI, or:
 
 ```powershell
-cd C:\Users\Anshu\anshux
-python team.py office
-python team.py opencode
+python team.py assign aider Restore Ada API on PR 8
+python team.py assign ada Stay on Semicolon chat only
 ```
+
+Chat with the architect on the office page (needs `python team.py office` running).
