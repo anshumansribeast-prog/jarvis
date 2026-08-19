@@ -1,5 +1,6 @@
 .env
 venv/
+.venv/
 command.wav
 tts_test.wav
 __pycache__/
