@@ -29,4 +29,4 @@
 | 2026-08-18T11:43:00Z | Cursor | Removed Claude Code; mains = Cursor + Codex; knowledge = Claude, ChatGPT, Gemini | Protocol updated |
 | 2026-08-18T11:44:00Z | Cursor | Defensive Semicolon/Cosmos review written to `anshux/SITE_SECURITY_REPORT.md` | SUB-2 in progress / report exists |
 | 2026-08-18T12:00:00Z | Cursor | Live check: generator 200, practice still has Generate, Ada mobile too small | SITE_CHECK.md |
-| 2026-08-19T05:37:00Z | Cursor | Switched getting-started from Cline to Aider + Ollama | AIDER_START.md |
+| 2026-08-19T05:49:00Z | Cursor | New Codex Cloud account; Codex is MAIN again. Task task_e_6a8542fc5b5c832598c087710241dfcf | Follow-up in CODEX_CLOUD_FOLLOWUP.md |

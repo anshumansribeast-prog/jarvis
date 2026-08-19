@@ -3,17 +3,19 @@
 PROJECT: ANSHUX
 STATUS: LOOP
 
-MAINS: Cursor, Codex
-KNOWLEDGE BRAINS: Ada, Beast
+MAIN: Codex
+CHECK: Cursor
+KNOWLEDGE: Ada, Beast
 
-**Until `STATUS: STOP`, keep working.**
+**Codex Cloud (new account) is MAIN.**
 
-Codex Cloud free limit is **hit**. Use **Aider + Ollama**: `anshux/AIDER_START.md`.
+Task: https://chatgpt.com/codex/cloud/tasks/task_e_6a8542fc5b5c832598c087710241dfcf  
+Environment repo: **anshumansribeast-prog/semicolon** (not jarvis)
 
-## Cursor — after Codex deploys
+Paste / follow-up with `anshux/CODEX_CLOUD_FOLLOWUP.md`.
 
-Re-check live site (`anshux/SITE_CHECK.md`): generate.html should 404; Ada CSS `?v=20260818a`.
+Until `STATUS: STOP`, Codex keeps working. Cursor only verifies the live site after deploy.
 
-## Last pytest (Jarvis)
+## Cursor after Codex deploys
 
-PASS — 37 tests
+`generate.html` 404, no Practice “Run generated”, Ada CSS `?v=20260818a`, phone composer usable.
