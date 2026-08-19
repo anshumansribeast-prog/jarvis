@@ -31,3 +31,4 @@
 | 2026-08-18T12:00:00Z | Cursor | Live check: generator 200, practice still has Generate, Ada mobile too small | SITE_CHECK.md |
 | 2026-08-19T06:17:00Z | Codex | Semicolon PR #8: drop Generator + mobile Ada; also deleted Ada API, Concepts, ada.jpg | OPEN — needs restore |
 | 2026-08-19T06:18:00Z | Cursor | Checked team (Codex MAIN + Cursor + Aider/Cline). Flagged PR #8 over-delete | TEAM.md |
+| 2026-08-19T06:45:00Z | Cursor | Wired Codex/Aider/Cursor/Continue/Ada starts: `AGENTS.md`, `TEAM.md`, `.aider.conf.yml`, `.cursor/rules`, `anshux.code-workspace`, `.continue/`, `.team/` | LOOP |

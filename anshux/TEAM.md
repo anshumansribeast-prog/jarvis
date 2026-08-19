@@ -1,5 +1,15 @@
 # ANSHUX team (checked 2026-08-19)
 
+How we start (Codex's layout, wired in this repo):
+
+| Who | How |
+| --- | --- |
+| **Codex** | `cd C:\Users\Anshu\anshux` then `codex`. Auto-reads `AGENTS.md` + `TEAM.md`. |
+| **Aider** | Same folder: `aider --config .aider.conf.yml`. Role card: `.team/aider.md`. |
+| **Cursor** | Open this folder. `.cursor/rules/*.mdc` injects into new chats. |
+| **Continue** | Open `anshux.code-workspace`. Reads `AGENTS.md` + `.continue/rules/anshux.md`. |
+| **Ada** | `cd C:\Users\Anshu\semicolon` (or `projects\semicolon`) then `python ada_server.py`. Ollama. |
+
 Codex is running in the **terminal** and as Cloud. This is the roster Cursor verified.
 
 | Seat | Agent | Role | Status |

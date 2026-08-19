@@ -1,0 +1,15 @@
+{
+  "folders": [
+    { "name": "ANSHUX", "path": "." },
+    { "name": "semicolon", "path": "../semicolon" }
+  ],
+  "settings": {
+    "files.exclude": {
+      "**/__pycache__": true,
+      "voices": true
+    }
+  },
+  "extensions": {
+    "recommendations": ["Continue.continue"]
+  }
+}

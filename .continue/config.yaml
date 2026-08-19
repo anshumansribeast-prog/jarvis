@@ -1,0 +1,16 @@
+name: ANSHUX
+version: 1.0.0
+schema: v1
+models:
+  - name: Ollama llama3.2
+    provider: ollama
+    model: llama3.2:3b
+    apiBase: http://127.0.0.1:11434
+rules:
+  - name: ANSHUX
+    source: file://./AGENTS.md
+  - name: TEAM
+    source: file://./TEAM.md
+docs:
+  - AGENTS.md
+  - TEAM.md

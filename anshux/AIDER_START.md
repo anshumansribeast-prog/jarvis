@@ -40,17 +40,27 @@ setx OLLAMA_API_BASE http://127.0.0.1:11434
 
 Close PowerShell and open a **new** window (setx only applies to new shells).
 
-## 4. Start in Semicolon
+## 4. Start (loads the Aider role card)
+
+From ANSHUX (preferred — `.aider.conf.yml` reads `.team/aider.md`):
+
+```powershell
+cd C:\Users\Anshu\anshux
+aider --config .aider.conf.yml
+```
+
+That config uses `ollama_chat/llama3.2:3b` and auto-reads `.team/aider.md`, `AGENTS.md`, and `TEAM.md`.
+
+To work in the Semicolon clone instead:
 
 ```powershell
 cd C:\Users\Anshu\semicolon
 aider --model ollama_chat/llama3.2:3b
 ```
 
-If you pulled the coder model:
+If you pulled the coder model (either folder):
 
 ```powershell
-cd C:\Users\Anshu\semicolon
 aider --model ollama_chat/qwen2.5-coder:7b
 ```
 
