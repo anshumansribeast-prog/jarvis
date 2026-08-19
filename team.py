@@ -401,7 +401,10 @@ class OfficeHandler(SimpleHTTPRequestHandler):
         return data if isinstance(data, dict) else {}
 
     def do_GET(self) -> None:  # noqa: N802
-        if self.path.split("?", 1)[0] == "/api/office":
+        path = self.path.split("?", 1)[0]
+        if path in {"/", "/office", "/office/", "/index.html"}:
+            self.path = "/index.html"
+        if path == "/api/office":
             self._json(200, collect_office_state())
             return
         super().do_GET()
@@ -428,19 +431,43 @@ class OfficeHandler(SimpleHTTPRequestHandler):
         self._json(404, {"ok": False})
 
 
+def _open_office_browser(url: str) -> None:
+    try:
+        if sys.platform == "win32":
+            os.startfile(url)  # type: ignore[attr-defined]
+        else:
+            webbrowser.open(url)
+    except OSError:
+        print("Open this URL in your browser:", url)
+
+
 def cmd_office() -> int:
     path = write_office_state()
     print("Office snapshot:", path)
     print("OpenCode is architect: assign tasks on the floor, chat in the panel.")
     print("Loop: every office member (OpenCode, Cursor, Aider, Continue, Cline, Ada, Beast) must have a task.")
-    html = ROOT / "office" / "index.html"
-    if not sys.stdin.isatty() or os.environ.get("ANSHUX_OFFICE_NO_SERVE"):
-        print("View:", html)
+    if os.environ.get("ANSHUX_OFFICE_NO_SERVE") or "--snap" in sys.argv:
+        print("View:", ROOT / "office" / "index.html")
         return 0
-    httpd = ThreadingHTTPServer(("127.0.0.1", 8765), OfficeHandler)
-    url = "http://127.0.0.1:8765/"
-    print("Office floor:", url)
-    webbrowser.open(url)
+    httpd = None
+    port = 8765
+    for port in range(8765, 8773):
+        try:
+            httpd = ThreadingHTTPServer(("127.0.0.1", port), OfficeHandler)
+            break
+        except OSError:
+            httpd = None
+    if httpd is None:
+        print("Could not bind 8765-8772. Close the other office window.")
+        return 1
+    url = f"http://127.0.0.1:{port}/"
+    print()
+    print("OFFICE SITE (chat panel is on this page):")
+    print(" ", url)
+    print("Do not double-click index.html. That hides the chat API.")
+    print("Leave this window open.")
+    print()
+    _open_office_browser(url)
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:

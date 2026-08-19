@@ -2,12 +2,14 @@
 
 **Desktop icon (Windows):** double-click `make_desktop_icon.bat` once. That puts **ANSHUX** on the Desktop.
 
-See the team like an office:
+**Office site (chat panel lives here, not on punah.pro):** double-click `office.bat` or:
 
 ```powershell
 cd C:\Users\Anshu\anshux
 python team.py office
 ```
+
+Leave that window open. Browser: **http://127.0.0.1:8765/** — OpenCode chat is the dark bar at the top. Do not open `office\index.html` by double-click; that skips the chat API.
 
 On the office page you can **assign a task** to any desk and **chat with OpenCode**. Or:
 

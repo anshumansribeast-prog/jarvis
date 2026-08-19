@@ -1,6 +1,11 @@
 """ANSHUX command hub."""
 
 import json
+import shutil
+import threading
+from http.server import ThreadingHTTPServer
+from pathlib import Path
+from urllib import request as urlreq
 
 import team
 
@@ -70,6 +75,36 @@ def test_architect_chat_queues_without_opencode(monkeypatch, tmp_path):
     result = team.architect_chat("inspect both sites")
     assert "queued" in result["reply"].lower() or "PATH" in result["reply"]
     assert result["chat"][-1]["who"] == "opencode"
+
+
+def test_office_site_serves_chat_panel(monkeypatch, tmp_path):
+    src = Path(__file__).resolve().parents[1] / "office" / "index.html"
+    monkeypatch.setattr(team, "ROOT", tmp_path)
+    monkeypatch.setattr(team, "http_status", lambda url, timeout=4.0: "200")
+    monkeypatch.setattr(team, "_gh_prs", lambda repo: [])
+    monkeypatch.setattr(team, "which", lambda cmd: None)
+    monkeypatch.setattr(team, "tcp_open", lambda *a, **k: False)
+    office = tmp_path / "office"
+    office.mkdir()
+    shutil.copy(src, office / "index.html")
+    httpd = ThreadingHTTPServer(("127.0.0.1", 0), team.OfficeHandler)
+    threading.Thread(target=httpd.serve_forever, daemon=True).start()
+    port = httpd.server_address[1]
+    try:
+        home = urlreq.urlopen(f"http://127.0.0.1:{port}/", timeout=5).read().decode("utf-8")
+        assert "OpenCode chat panel" in home
+        assert "Assign a task" in home
+        req = urlreq.Request(
+            f"http://127.0.0.1:{port}/api/chat",
+            data=json.dumps({"text": "hello architect"}).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        chat = json.loads(urlreq.urlopen(req, timeout=5).read().decode("utf-8"))
+        assert chat["ok"] is True
+        assert chat["chat"]
+    finally:
+        httpd.shutdown()
 
 
 def test_find_project_semicolon(tmp_path, monkeypatch):

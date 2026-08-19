@@ -34,4 +34,4 @@
 | 2026-08-19T06:45:00Z | Cursor | Wired Codex/Aider/Cursor/Continue/Ada starts: `AGENTS.md`, `TEAM.md`, `.aider.conf.yml`, `.cursor/rules`, `anshux.code-workspace`, `.continue/`, `.team/` | LOOP |
 | 2026-08-19T08:12:00Z | Cursor | Default OpenCode to Ollama; disable Anthropic so Claude Sonnet does not spam invalid x-api-key | LOOP |
 | 2026-08-19T08:32:00Z | Cursor | OpenCode = site inspector (both sites + PRs). Office floor `python team.py office`. Aider implements. | LOOP |
-| 2026-08-19T08:48:00Z | Cursor | Office assign UI + OpenCode chat panel; loop requires every member on the floor | LOOP |
+| 2026-08-19T08:58:00Z | Cursor | Office is a real site at :8765; chat panel at top; do not open raw HTML | LOOP |
