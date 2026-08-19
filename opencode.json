@@ -1,5 +1,8 @@
 {
   "$schema": "https://opencode.ai/config.json",
+  "model": "ollama/llama3.2:3b",
+  "small_model": "ollama/llama3.2:3b",
+  "disabled_providers": ["anthropic"],
   "instructions": ["TEAM.md", ".team/opencode.md"],
   "provider": {
     "ollama": {

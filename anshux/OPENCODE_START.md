@@ -37,7 +37,11 @@ cd C:\Users\Anshu\anshux
 opencode
 ```
 
-In the TUI: `/models` → pick **Ollama** `llama3.2:3b` or `qwen2.5-coder:7b`. Do **not** run `/init` in a way that overwrites the existing `AGENTS.md`.
+In the TUI: `/models` → pick **Ollama (local)** `llama3.2:3b` (not Claude Sonnet).
+
+This repo’s `opencode.json` sets the default to Ollama and **disables Anthropic**, so you do not get `invalid x-api-key` from a missing Claude key.
+
+If you already picked **Build · Claude Sonnet 4.6**, that model needs a real Anthropic key (`sk-ant-...`). A blank, expired, or Cursor/OpenAI key in that slot always returns the same error.
 
 ## 4. First task
 

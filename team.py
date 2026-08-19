@@ -182,7 +182,7 @@ def cmd_opencode() -> int:
         print("  cd C:\\Users\\Anshu\\anshux")
         print("  python team.py")
         return 1
-    return _run([exe])
+    return _run([exe, "--model", "ollama/llama3.2:3b"])
 
 
 def cmd_aider() -> int:
@@ -341,11 +341,11 @@ def cmd_tui() -> int:
             continue
         exe = which("opencode")
         if exe:
-            print("Starting OpenCode (MAIN) with that prompt…")
-            code = subprocess.call([exe, "run", line], cwd=str(ROOT))
+            print("Starting OpenCode (MAIN). Use /models → Ollama, not Claude Sonnet (invalid x-api-key).")
+            code = subprocess.call([exe, "--model", "ollama/llama3.2:3b", "run", line], cwd=str(ROOT))
             if code != 0:
                 print("OpenCode run failed; opening full TUI. Type your request there.")
-                subprocess.call([exe], cwd=str(ROOT))
+                subprocess.call([exe, "--model", "ollama/llama3.2:3b"], cwd=str(ROOT))
             print()
             continue
         print("No built-in for that, and OpenCode is not installed.")
