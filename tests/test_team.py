@@ -7,8 +7,18 @@ def test_help_exits_zero():
     assert team.main(["help"]) == 0
 
 
-def test_unknown_command():
-    assert team.main(["not-a-command"]) == 1
+def test_resolve_check_the_sites():
+    assert team.resolve_command("check the sites") == "sites"
+    assert team.resolve_command("2") == "sites"
+    assert team.resolve_command("ping sites") == "sites"
+
+
+def test_cli_check_the_sites(capsys, monkeypatch):
+    monkeypatch.setattr(team, "http_status", lambda url, timeout=4.0: "200")
+    assert team.main(["check", "the", "sites"]) == 0
+    out = capsys.readouterr().out
+    assert "Live sites" in out
+    assert "Semicolon" in out
 
 
 def test_status_runs(capsys):

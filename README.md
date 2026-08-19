@@ -9,7 +9,19 @@ cd C:\Users\Anshu\anshux
 python team.py
 ```
 
-Wrong: `python team . py` — Python then looks for a file named `team. py` and fails.
+You get an `anshux>` prompt that stays open (like Codex / Claude Code). Type:
+
+```
+check the sites
+status
+opencode
+continue
+q
+```
+
+Wrong: `python team . py` — that looks for a file named `team. py`.
+
+**Continue** is the VS Code extension. At `anshux>` type `continue` (opens `anshux.code-workspace`). Or double-click `open_anshux.bat`.
 
 Open **`anshux.code-workspace`** (or `open_anshux.bat`). You should see:
 
