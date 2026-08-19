@@ -2,6 +2,23 @@
 
 **Desktop icon (Windows):** double-click `make_desktop_icon.bat` once. That puts **ANSHUX** on the Desktop.
 
+## Deploy the office on a server
+
+Full guide for Abhishek / ops: **[`DEPLOY.md`](DEPLOY.md)**
+
+```bash
+git clone https://github.com/anshumansribeast-prog/jarvis.git
+cd jarvis
+git checkout cursor/anshx-qa-loop-8b8a   # or main after merge
+./scripts/deploy-office.sh
+# → http://SERVER_IP:8765/
+```
+
+Also: `scripts/anshux-office.service` (systemd), `scripts/nginx-office.conf`, `Dockerfile.office`.  
+Ship mail default: **abhiis@eleven11.pro**.
+
+---
+
 **Office site (chat panel lives here, not on punah.pro):** double-click `office.bat` or:
 
 ```powershell

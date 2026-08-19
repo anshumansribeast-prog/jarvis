@@ -1,0 +1,17 @@
+[Unit]
+Description=ANSHUX Command Office (Commander + floor on :8765)
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/opt/anshux/jarvis
+Environment=ANSHUX_OFFICE_HOST=0.0.0.0
+Environment=ANSHUX_OFFICE_NO_BROWSER=1
+Environment=ANSHUX_ABHISHEK_EMAIL=abhiis@eleven11.pro
+ExecStart=/opt/anshux/jarvis/.venv/bin/python /opt/anshux/jarvis/team.py office
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
