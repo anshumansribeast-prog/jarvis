@@ -36,13 +36,17 @@ def open_known_folder(name):
     return True
 
 
-def create_folder(name, base=DEFAULT_CREATE_DIR):
+def create_folder(name, base=None):
+    if base is None:
+        base = DEFAULT_CREATE_DIR
     path = os.path.join(base, name.strip())
     os.makedirs(path, exist_ok=True)
     return path
 
 
-def create_file(name, base=DEFAULT_CREATE_DIR):
+def create_file(name, base=None):
+    if base is None:
+        base = DEFAULT_CREATE_DIR
     name = name.strip()
     if "." not in name:
         name += ".txt"
@@ -52,10 +56,12 @@ def create_file(name, base=DEFAULT_CREATE_DIR):
     return path
 
 
-def find(name, root=HOME, limit=5):
+def find(name, root=None, limit=5):
     """Search under `root` for files/folders whose name contains `name`
     (case-insensitive substring). Returns up to `limit` matches, shortest
     path first (closest to root, usually the most relevant)."""
+    if root is None:
+        root = HOME
     name = name.lower().strip()
     matches = []
     for dirpath, dirnames, filenames in os.walk(root):

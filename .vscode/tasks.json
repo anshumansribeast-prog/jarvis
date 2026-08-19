@@ -1,0 +1,101 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "ANSHUX: board (all systems)",
+      "type": "shell",
+      "command": "python3",
+      "windows": { "command": "python" },
+      "args": ["team.py", "status"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "focus": false
+      },
+      "runOptions": { "runOn": "folderOpen" }
+    },
+    {
+      "label": "ANSHUX: start-all (board + Ada)",
+      "type": "shell",
+      "command": "python3",
+      "windows": { "command": "python" },
+      "args": ["team.py", "start-all"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": []
+    },
+    {
+      "label": "ANSHUX: OpenCode (inspect sites)",
+      "type": "shell",
+      "command": "python3",
+      "windows": { "command": "python" },
+      "args": ["team.py", "opencode"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": []
+    },
+    {
+      "label": "ANSHUX: Aider",
+      "type": "shell",
+      "command": "python3",
+      "windows": { "command": "python" },
+      "args": ["team.py", "aider"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": []
+    },
+    {
+      "label": "ANSHUX: Ada",
+      "type": "shell",
+      "command": "python3",
+      "windows": { "command": "python" },
+      "args": ["team.py", "ada"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": []
+    },
+    {
+      "label": "ANSHUX: Jarvis",
+      "type": "shell",
+      "command": "python3",
+      "windows": { "command": "python" },
+      "args": ["team.py", "jarvis"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": []
+    },
+    {
+      "label": "ANSHUX: pytest",
+      "type": "shell",
+      "command": "python3",
+      "windows": { "command": "python" },
+      "args": ["team.py", "pytest"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": []
+    },
+    {
+      "label": "ANSHUX: office floor",
+      "type": "shell",
+      "command": "python3",
+      "windows": { "command": "python" },
+      "args": ["team.py", "office"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": []
+    },
+    {
+      "label": "ANSHUX: live sites",
+      "type": "shell",
+      "command": "python3",
+      "windows": { "command": "python" },
+      "args": ["team.py", "sites"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": []
+    },
+    {
+      "label": "ANSHUX: command menu",
+      "type": "shell",
+      "command": "python3",
+      "windows": { "command": "python" },
+      "args": ["team.py"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": []
+    }
+  ]
+}

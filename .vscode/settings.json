@@ -1,0 +1,9 @@
+{
+  "workbench.startupEditor": "readme",
+  "task.allowAutomaticTasks": "on",
+  "terminal.integrated.cwd": "${workspaceFolder}",
+  "files.exclude": {
+    "**/__pycache__": true,
+    "voices": true
+  }
+}

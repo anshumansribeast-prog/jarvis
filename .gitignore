@@ -1,5 +1,6 @@
 .env
 venv/
+.venv/
 command.wav
 tts_test.wav
 __pycache__/
@@ -7,4 +8,17 @@ voices/
 config/facts.json
 _test_stdout.log
 _test_stderr.log
+_ada_server.log
+office/state.json
+office/assignments.json
+office/chat.json
+office/briefing.json
+office/briefing-abhishek.md
+command_office/data/ship_log.json
+command_office/data/*.json
+command_office/workspace/frontend/
+command_office/workspace/backend/
+command_office/workspace/commander/
+command_office/workspace/projects/*/
+!command_office/workspace/projects/.gitkeep
 screenshots/

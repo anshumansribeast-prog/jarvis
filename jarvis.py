@@ -63,7 +63,7 @@ SITES = {
     # cosmos.punah.pro is the actual live site now, not its netlify copy.
     "semicolon": "https://semicolon.punah.pro",
     "cosmos": "https://cosmos.punah.pro",
-    "backend": "https://cosmos.punah.pro/backend.html",
+    "backend": "https://cosmos.punah.pro/back",
     "music": "https://music.youtube.com",
 }
 
@@ -85,9 +85,11 @@ JOKES = [
     "None, that's a hardware problem.",
 ]
 
-print("Loading voice (Piper) and speech recognition (Whisper) models...")
-piper_voice = PiperVoice.load(PIPER_VOICE_PATH)
-whisper_model = WhisperModel(WHISPER_MODEL_SIZE, device="cpu", compute_type="int8")
+# Loaded on first use (speak/transcribe/record), not at import, so unit
+# tests can import this module without Piper/Whisper model files.
+piper_voice = None
+whisper_model = None
+_runtime_loaded = False
 
 # Wikipedia's API rejects requests with no User-Agent (403, "please set a
 # user-agent and respect our robot policy") — identify ourselves honestly.
@@ -139,7 +141,19 @@ def pick_input_device():
     return None  # nothing explicit worked — let PortAudio's own default try
 
 
-INPUT_DEVICE = pick_input_device()
+INPUT_DEVICE = None
+
+
+def _ensure_runtime():
+    """Load Piper, Whisper, and the mic device once, on first audio use."""
+    global piper_voice, whisper_model, INPUT_DEVICE, _runtime_loaded
+    if _runtime_loaded:
+        return
+    print("Loading voice (Piper) and speech recognition (Whisper) models...")
+    piper_voice = PiperVoice.load(PIPER_VOICE_PATH)
+    whisper_model = WhisperModel(WHISPER_MODEL_SIZE, device="cpu", compute_type="int8")
+    INPUT_DEVICE = pick_input_device()
+    _runtime_loaded = True
 
 
 _STOPWORDS = {
@@ -279,6 +293,7 @@ def ask_ollama(query):
 
 
 def speak(text):
+    _ensure_runtime()
     print(f"Jarvis: {text}")
     # Piper synthesizes one chunk per sentence — play each as it's ready
     # rather than waiting for the whole reply, so longer answers don't
@@ -330,6 +345,7 @@ def answer_question(query):
 
 def record_chunk(seconds, samplerate=SAMPLE_RATE):
     """Record `seconds` of audio from the mic and return it as an int16 array."""
+    _ensure_runtime()
     audio = sd.rec(int(seconds * samplerate), samplerate=samplerate,
                     channels=1, dtype="int16", device=INPUT_DEVICE)
     sd.wait()
@@ -346,6 +362,7 @@ def transcribe(audio):
 
     Runs fully offline — no network call, unlike the old Google recognizer.
     """
+    _ensure_runtime()
     float_audio = (audio.flatten().astype(np.float32) / 32768.0)
     segments, _info = whisper_model.transcribe(float_audio, language="en")
     text = " ".join(segment.text for segment in segments).strip()
@@ -690,6 +707,7 @@ def handle_command(text):
 
 
 def main():
+    _ensure_runtime()
     speak("Jarvis online. Say the word Jarvis whenever you need me.")
     running = True
     while running:

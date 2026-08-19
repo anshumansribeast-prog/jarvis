@@ -1,0 +1,7 @@
+# Ollama for Aider (same server as Jarvis / Ada)
+model: ollama_chat/llama3.2:3b
+
+read:
+  - .team/aider.md
+  - AGENTS.md
+  - TEAM.md
