@@ -1,11 +1,16 @@
-# Codex commands
+# OpenCode commands (MAIN)
 
-## Codex Cloud — https://chatgpt.com/codex/cloud
+Install and start: `anshux/OPENCODE_START.md`
 
-1. New task
-2. Repository: **anshumansribeast-prog/semicolon**
-3. Paste the task in `anshux/CODEX_CLOUD_TASK.md` (everything under the `---` line)
+```powershell
+cd C:\Users\Anshu\anshux
+opencode
+```
 
-## Local (optional)
+Paste `anshux/OPENCODE_TASK.md`.
+
+## Local Semicolon patch (optional)
 
 `C:\Users\Anshu\semicolon` + `git apply` `anshux/patches/semicolon-simple-again.patch`
+
+Codex Cloud is not used. Old notes: `anshux/CODEX_CLOUD_TASK.md` (archive).

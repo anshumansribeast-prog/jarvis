@@ -16,4 +16,4 @@ cd C:\Users\Anshu\anshux\projects\semicolon
 python ada_server.py
 ```
 
-Site chat: https://semicolon.punah.pro/pages/ada.html → `POST /api/ada`. You are not a coding agent; Codex/Aider edit the repo. Keep Generator removed from the product.
+Site chat: https://semicolon.punah.pro/pages/ada.html → `POST /api/ada`. You are not a coding agent; OpenCode/Aider edit the repo. Keep Generator removed from the product.

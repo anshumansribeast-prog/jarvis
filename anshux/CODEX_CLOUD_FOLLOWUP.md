@@ -1,3 +1,7 @@
+# Archive — Codex Cloud follow-up (do not use)
+
+Use `anshux/OPENCODE_TASK.md` in OpenCode instead.
+
 # Follow-up for this Codex Cloud task
 
 Open: https://chatgpt.com/codex/cloud/tasks/task_e_6a8542fc5b5c832598c087710241dfcf

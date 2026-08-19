@@ -1,3 +1,9 @@
+# Archive — Codex role folder (do not use)
+
+**MAIN is OpenCode now.** See `anshux/OPENCODE_START.md`. This folder was for old Codex Cloud/Documents paths.
+
+---
+
 # Codex role folder — COPY THIS WHOLE DIRECTORY
 
 Codex is idle because it only reads **this folder**:

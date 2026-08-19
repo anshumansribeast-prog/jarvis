@@ -2,9 +2,9 @@
 
 This agent cannot push `anshumansribeast-prog/semicolon`.
 
-**Codex** (on the laptop, in `C:\Users\Anshu\semicolon`):
+**OpenCode** (on the laptop, in `C:\Users\Anshu\semicolon`):
 
-See `anshux/CODEX_COMMAND.md`.
+See `anshux/OPENCODE_START.md` / `anshux/CODEX_COMMAND.md`.
 
 ```powershell
 cd C:\Users\Anshu\semicolon

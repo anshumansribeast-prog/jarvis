@@ -2,7 +2,7 @@
 
 Reviewer: **Cursor** (main). Date: 2026-08-18. Method: HTTPS GET/HEAD on owner sites only. No exploits, no POST to chat, no fuzzing.
 
-**LOOP:** Cursor and Codex re-check this until `AGENT_TASK.md` is `STATUS: STOP`. Knowledge brains: Ada (Semicolon), Beast (Cosmos).
+**LOOP:** Cursor and OpenCode re-check this until `AGENT_TASK.md` is `STATUS: STOP`. Knowledge brains: Ada (Semicolon), Beast (Cosmos).
 
 **Generator:** Live Semicolon still has `/pages/generate.html`. Removal is in `anshux/patches/semicolon-remove-generator.patch` (this agent cannot push the semicolon repo).
 

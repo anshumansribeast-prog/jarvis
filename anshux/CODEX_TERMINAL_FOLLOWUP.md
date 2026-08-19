@@ -1,3 +1,7 @@
+# Archive — terminal Codex (do not use)
+
+Use `anshux/OPENCODE_TASK.md` in OpenCode instead.
+
 Paste into **terminal Codex** (MAIN), same thread as the team task:
 
 You are MAIN on ANSHUX with Cursor (check) and free backups Aider/Cline+Ollama. Do not idle.

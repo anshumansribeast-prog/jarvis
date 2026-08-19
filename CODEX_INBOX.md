@@ -1,9 +1,12 @@
-# Codex Cloud
+# Inbox (was Codex Cloud)
 
-**MAIN.** New account.
+**MAIN is OpenCode**, not Codex. Do not open Codex Cloud for new work.
 
-Open this task and paste `anshux/CODEX_CLOUD_FOLLOWUP.md`:
+```powershell
+cd C:\Users\Anshu\anshux
+opencode
+```
 
-https://chatgpt.com/codex/cloud/tasks/task_e_6a8542fc5b5c832598c087710241dfcf
+Paste `anshux/OPENCODE_TASK.md`. Repo for Semicolon edits is **semicolon**, not jarvis.
 
-Repo must be **semicolon**, not jarvis.
+Archived Codex task URL (do not continue): https://chatgpt.com/codex/cloud/tasks/task_e_6a8542fc5b5c832598c087710241dfcf

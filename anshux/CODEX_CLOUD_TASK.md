@@ -1,3 +1,7 @@
+# Archive — Codex Cloud (do not use)
+
+**MAIN is OpenCode.** Use `anshux/OPENCODE_TASK.md` instead.
+
 # Codex Cloud — paste at https://chatgpt.com/codex/cloud
 
 **Repo to select:** `anshumansribeast-prog/semicolon` (not jarvis).

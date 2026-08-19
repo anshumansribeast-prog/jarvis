@@ -1,6 +1,6 @@
 # AGENT_LOG
 
-**ANSHUX** mains Cursor + Codex (LOOP until STOP). Knowledge brains: Ada, Beast. Optional: Claude, ChatGPT, Gemini.
+**ANSHUX** mains Cursor + OpenCode (LOOP until STOP). Knowledge brains: Ada, Beast. Codex is off the team.
 
 | Timestamp (UTC) | Agent | Action | Result |
 | --- | --- | --- | --- |
@@ -32,3 +32,4 @@
 | 2026-08-19T06:17:00Z | Codex | Semicolon PR #8: drop Generator + mobile Ada; also deleted Ada API, Concepts, ada.jpg | OPEN — needs restore |
 | 2026-08-19T06:18:00Z | Cursor | Checked team (Codex MAIN + Cursor + Aider/Cline). Flagged PR #8 over-delete | TEAM.md |
 | 2026-08-19T06:45:00Z | Cursor | Wired Codex/Aider/Cursor/Continue/Ada starts: `AGENTS.md`, `TEAM.md`, `.aider.conf.yml`, `.cursor/rules`, `anshux.code-workspace`, `.continue/`, `.team/` | LOOP |
+| 2026-08-19T06:52:00Z | Cursor | Removed Codex. MAIN = OpenCode (`opencode` + `opencode.json`). Start: `anshux/OPENCODE_START.md` | LOOP |

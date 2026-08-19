@@ -1,6 +1,6 @@
 # Site check (Cursor) — 2026-08-18T12:00Z
 
-Live hosts only. Generator is still **on** production until Codex applies `semicolon-simple-again.patch`.
+Live hosts only. Generator is still **on** production until OpenCode applies `semicolon-simple-again.patch`.
 
 | URL | Status | Proper? |
 | --- | --- | --- |
@@ -13,4 +13,4 @@ Live hosts only. Generator is still **on** production until Codex applies `semic
 | https://cosmos.punah.pro/back | 200 | OK (Jarvis open-backend). |
 | https://cosmos.punah.pro/backend.html | 404 | Expected stale path. |
 
-**Verdict:** Sites are reachable. Semicolon is **not** simple yet on punah.pro. Codex must apply the patch on the **semicolon** repo (this Cursor run cannot push that repo). After deploy, Cursor should see generate.html 404 and Ada mobile CSS `20260818a`.
+**Verdict:** Sites are reachable. Semicolon is **not** simple yet on punah.pro. OpenCode must apply the patch on the **semicolon** repo (this Cursor run cannot push that repo). After deploy, Cursor should see generate.html 404 and Ada mobile CSS `20260818a`.

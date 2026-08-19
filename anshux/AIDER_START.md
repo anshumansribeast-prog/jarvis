@@ -1,6 +1,6 @@
-# Get started with Aider (free, replaces Codex)
+# Get started with Aider (free backup)
 
-Use **Aider**, not Cline, unless you specifically want a VS Code sidebar. Aider talks to the **Ollama** you already run for Jarvis/Ada. $0.
+**OpenCode is MAIN.** Use **Aider** when OpenCode is busy, or if you want git-aware edits in the terminal without the OpenCode TUI. Aider talks to the **Ollama** you already run for Jarvis/Ada. $0.
 
 Official install: [aider.chat/docs/install](https://aider.chat/docs/install.html)  
 Ollama: [aider.chat/docs/llms/ollama](https://aider.chat/docs/llms/ollama.html)
@@ -68,7 +68,7 @@ Use `ollama_chat/` not `ollama/` (Aider’s docs).
 
 ## 5. First task
 
-At the Aider prompt, paste the Semicolon job from `anshux/CODEX_CLOUD_TASK.md` (drop Generator, fix mobile Ada).
+At the Aider prompt, paste the Semicolon job from `anshux/OPENCODE_TASK.md` (drop Generator, fix mobile Ada).
 
 Useful keys: `/help`  `/undo`  `/commit`
 
