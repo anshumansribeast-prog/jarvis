@@ -440,6 +440,8 @@ class OfficeHandler(SimpleHTTPRequestHandler):
 
 
 def _open_office_browser(url: str) -> None:
+    if os.environ.get("ANSHUX_OFFICE_NO_BROWSER"):
+        return
     try:
         if sys.platform == "win32":
             os.startfile(url)  # type: ignore[attr-defined]
@@ -459,9 +461,12 @@ def cmd_office() -> int:
         return 0
     httpd = None
     port = 8765
+    # 0.0.0.0 so Cursor/cloud port-forward and LAN can reach the office.
+    # 127.0.0.1 only works on the same machine that is running this process.
+    host = os.environ.get("ANSHUX_OFFICE_HOST", "0.0.0.0")
     for port in range(8765, 8773):
         try:
-            httpd = ThreadingHTTPServer(("127.0.0.1", port), OfficeHandler)
+            httpd = ThreadingHTTPServer((host, port), OfficeHandler)
             break
         except OSError:
             httpd = None
@@ -477,6 +482,8 @@ def cmd_office() -> int:
     print(" ", url)
     print("AI COMMAND OFFICE (Commander + agents):")
     print(" ", url + "command/")
+    print("These URLs work only on THIS computer, while this window stays open.")
+    print("They will not open from another phone/laptop or from punah.pro.")
     print("Do not double-click index.html. That hides the chat API.")
     print("Leave this window open.")
     print()

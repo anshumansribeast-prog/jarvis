@@ -9,7 +9,12 @@ cd C:\Users\Anshu\anshux
 python team.py office
 ```
 
-Leave that window open. Browser: **http://127.0.0.1:8765/** — OpenCode chat is the dark bar at the top. Do not open `office\index.html` by double-click; that skips the chat API.
+Leave that window open. Then on **that same computer** open:
+
+- Office floor: http://127.0.0.1:8765/
+- AI Command Office: http://127.0.0.1:8765/command/
+
+Those links are not the internet. They only work while `team.py office` is running on your PC. They are not semicolon.punah.pro. Do not open `office\index.html` by double-click; that skips the chat API.
 
 On the office page you can **assign a task** to any desk and **chat with OpenCode**. Or:
 
