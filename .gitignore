@@ -11,4 +11,7 @@ _ada_server.log
 office/state.json
 office/assignments.json
 office/chat.json
+command_office/data/*.json
+command_office/workspace/frontend/
+command_office/workspace/backend/
 screenshots/

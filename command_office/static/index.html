@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI Command Office — COMMANDER</title>
+  <style>
+    :root {
+      --bg:#07090d; --panel:#10161e; --ink:#dce8f0; --muted:#7a8c9a;
+      --line:#1e2d3a; --amber:#e8b84a; --ok:#3dcc8a; --warn:#e8b84a;
+      --bad:#ff6b6b; --idle:#6b7c88; --work:#4aa3ff;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; }
+    body {
+      background: radial-gradient(1200px 600px at 80% -10%, #132033, var(--bg));
+      color: var(--ink);
+      font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+    }
+    .app { display: grid; grid-template-columns: 220px 1fr 280px; height: 100%; }
+    @media (max-width: 980px) { .app { grid-template-columns: 1fr; } .rail, .live { display: none; } .rail.open, .live.open { display: block; } }
+    .rail, .live { background: var(--panel); border-right: 1px solid var(--line); overflow: auto; }
+    .live { border-right: 0; border-left: 1px solid var(--line); }
+    .brand { padding: 16px 14px 8px; }
+    .brand .k { font-size: .65rem; letter-spacing: .18em; color: var(--amber); text-transform: uppercase; }
+    .brand h1 { margin: 4px 0 0; font-size: 1.05rem; font-weight: 700; }
+    nav button, .ghost {
+      display: block; width: calc(100% - 16px); margin: 4px 8px; text-align: left;
+      background: transparent; color: var(--ink); border: 1px solid transparent;
+      padding: 8px 10px; cursor: pointer; font: inherit;
+    }
+    nav button.active, nav button:hover { border-color: var(--line); background: #18222c; }
+    .main { display: flex; flex-direction: column; min-height: 0; }
+    .bar { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--line); }
+    .bar b { letter-spacing: .08em; }
+    .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; background: var(--ok); }
+    .dot.work { background: var(--work); } .dot.idle { background: var(--idle); } .dot.bad { background: var(--bad); }
+    #view { flex: 1; overflow: auto; padding: 16px; }
+    #log { display: flex; flex-direction: column; gap: 12px; }
+    .msg { max-width: 760px; padding: 12px 14px; border: 1px solid var(--line); background: #0c1218; }
+    .msg.you { align-self: flex-end; border-color: #2a4a66; }
+    .msg .who { font-size: .7rem; letter-spacing: .12em; text-transform: uppercase; color: var(--amber); margin-bottom: 6px; }
+    .cards { display: grid; gap: 8px; margin-top: 8px; }
+    .card { border: 1px solid var(--line); padding: 8px; font-size: .85rem; background: #111a22; }
+    .card .st { float: right; font-size: .7rem; letter-spacing: .1em; }
+    .composer { display: grid; grid-template-columns: 1fr auto; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--line); }
+    textarea { width: 100%; min-height: 64px; background: #0b1016; color: var(--ink); border: 1px solid var(--line); padding: 8px; font: inherit; }
+    button.primary { background: var(--amber); color: #111; border: 0; padding: 0 18px; font-weight: 700; cursor: pointer; }
+    .err { color: var(--bad); font-size: .85rem; min-height: 1.1em; padding: 0 16px; }
+    pre, code { font-family: Consolas, "IBM Plex Mono", monospace; }
+    pre { background: #05080c; padding: 8px; overflow: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+    th, td { border-bottom: 1px solid var(--line); padding: 6px 4px; text-align: left; vertical-align: top; }
+    .live h2 { font-size: .75rem; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); padding: 14px 14px 4px; }
+    .row { padding: 6px 14px; font-size: .85rem; display: flex; justify-content: space-between; gap: 8px; }
+    .hint { color: var(--muted); font-size: .8rem; padding: 0 14px 12px; }
+    a { color: #8ec8ff; }
+    .mob { display: none; }
+    @media (max-width: 980px) { .mob { display: inline-block; } }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="rail" id="rail">
+      <div class="brand">
+        <div class="k">AI Command Office</div>
+        <h1>COMMANDER</h1>
+      </div>
+      <nav>
+        <button type="button" data-view="chat" class="active">Commander chat</button>
+        <button type="button" id="new-chat">New Chat</button>
+        <button type="button" data-view="conversations">Conversations</button>
+        <button type="button" data-view="projects">Projects</button>
+        <button type="button" data-view="agents">Agents</button>
+        <button type="button" data-view="tasks">Tasks</button>
+        <button type="button" data-view="activity">Activity</button>
+        <button type="button" data-view="files">Files</button>
+        <button type="button" data-view="settings">Settings</button>
+      </nav>
+      <p class="hint"><a href="/">ANSHUX office floor</a></p>
+    </aside>
+    <section class="main">
+      <div class="bar">
+        <div><button class="ghost mob" type="button" id="toggle-nav">Menu</button> <b id="view-title">Commander chat</b></div>
+        <div><span class="dot"></span>COMMANDER online</div>
+      </div>
+      <div id="view"></div>
+      <p class="err" id="err"></p>
+      <form class="composer" id="chat-form">
+        <textarea id="msg" required placeholder="Build a website. Fix the login bug. Show me everyone's progress."></textarea>
+        <button class="primary" type="submit">Send</button>
+      </form>
+    </section>
+    <aside class="live" id="live"></aside>
+  </div>
+  <script>
+    const AGENTS = ["frontend","backend","debugger","testing","review","research","devops","security"];
+    let state = { agents: [], tasks: [], conversations: [], activity: [], files: [], settings: {}, commander: {} };
+    let cid = null;
+    let view = "chat";
+
+    function esc(s) {
+      return String(s || "").replace(/[&<>"]/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;" }[c]));
+    }
+    function md(text) {
+      let t = esc(text);
+      t = t.replace(/```([\s\S]*?)```/g, (_, c) => "<pre><code>" + c + "</code></pre>");
+      t = t.replace(/`([^`]+)`/g, "<code>$1</code>");
+      t = t.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+      t = t.replace(/^### (.*)$/gm, "<h3>$1</h3>");
+      t = t.replace(/^## (.*)$/gm, "<h2>$1</h2>");
+      t = t.replace(/^- (.*)$/gm, "<div>• $1</div>");
+      return t.replace(/\n/g, "<br>");
+    }
+    function statusDot(st) {
+      const s = String(st || "Idle").toLowerCase();
+      const cls = s.includes("work") || s.includes("test") || s === "running" ? "work" : (s.includes("fail") ? "bad" : "idle");
+      return `<span class="dot ${cls}"></span>`;
+    }
+    function convo() {
+      return (state.conversations || []).find(c => c.id === cid) || { messages: [] };
+    }
+    function paintLive() {
+      const agents = state.agents || [];
+      const tasks = (state.tasks || []).slice(-8).reverse();
+      document.getElementById("live").innerHTML =
+        `<h2>Live command center</h2>
+         <div class="row"><span>Commander</span><span>${statusDot("Online")}Online</span></div>
+         <h2>Agents</h2>` +
+        agents.map(a => `<div class="row"><span>${esc(a.name)}</span><span>${statusDot(a.status)}${esc(a.status || "Idle")}</span></div>`).join("") +
+        `<h2>Tasks</h2>` +
+        (tasks.length ? tasks.map(t => `<div class="row"><span>#${esc(t.id)} ${esc(t.title)}</span><span>${esc(t.status)}</span></div>`).join("") : `<p class="hint">No tasks yet.</p>`);
+    }
+    function renderChat() {
+      const msgs = convo().messages || [];
+      const html = msgs.map(m => {
+        const who = m.role === "user" ? "you" : "commander";
+        let extra = "";
+        if (m.tasks && m.tasks.length) {
+          extra = `<div class="cards">` + m.tasks.map(t =>
+            `<div class="card"><span class="st">${esc(t.status)}</span><b>#${esc(t.id)} ${esc(t.title)}</b><div>${esc(t.agent)} · deps ${esc((t.depends||[]).join(", ")||"none")}</div></div>`
+          ).join("") + `</div>`;
+        }
+        if (m.needs_approval) extra += `<div class="card">Approval required before destructive work runs.</div>`;
+        if (m.kind === "error") extra += `<div class="card" style="border-color:#ff6b6b">${esc(m.text)}</div>`;
+        return `<article class="msg ${who}"><div class="who">${esc(who)}</div><div>${md(m.text || "")}</div>${extra}</article>`;
+      }).join("");
+      document.getElementById("view").innerHTML = `<div id="log">${html || "<p class='hint'>Talk to COMMANDER. Large requests are split into agent tasks and executed on this machine.</p>"}</div>`;
+      const log = document.getElementById("log");
+      if (log) log.scrollTop = log.scrollHeight;
+    }
+    function renderAgents() {
+      document.getElementById("view").innerHTML = `<table><tr><th>Agent</th><th>Role</th><th>Status</th><th>Task</th><th>Logs</th></tr>` +
+        (state.agents || []).map(a => `<tr><td>${esc(a.name)}</td><td>${esc(a.role)}<br><small>${esc((a.capabilities||[]).join(", "))}</small></td><td>${esc(a.status)}</td><td>${esc(a.current_task || "—")}</td><td><pre>${esc(JSON.stringify((a.logs||[]).slice(-4), null, 0))}</pre></td></tr>`).join("") + `</table>`;
+    }
+    function renderTasks() {
+      const rows = (state.tasks || []).slice().reverse();
+      document.getElementById("view").innerHTML = `<table><tr><th>ID</th><th>Title</th><th>Agent</th><th>Status</th><th>Deps</th><th>Actions</th></tr>` +
+        rows.map(t => `<tr>
+          <td>#${esc(t.id)}</td><td>${esc(t.title)}<br><small>${esc((t.output||t.errors||"").slice(0,180))}</small></td>
+          <td><select data-reassign="${esc(t.id)}">${AGENTS.map(id => `<option ${id===t.agent?"selected":""} value="${id}">${id}</option>`).join("")}</select></td>
+          <td>${esc(t.status)} ${esc(t.progress||0)}%</td>
+          <td>${esc((t.depends||[]).join(", "))}</td>
+          <td>
+            <button type="button" data-act="retry" data-id="${esc(t.id)}">Retry</button>
+            <button type="button" data-act="cancel" data-id="${esc(t.id)}">Stop</button>
+            ${t.status==="NEEDS_REVIEW"?`<button type="button" data-act="approve" data-id="${esc(t.id)}">Approve</button>`:""}
+          </td></tr>`).join("") + `</table>`;
+    }
+    function renderList(title, items) {
+      document.getElementById("view").innerHTML = `<h3>${esc(title)}</h3>` + items.join("");
+    }
+    function paintView() {
+      document.getElementById("chat-form").style.display = view === "chat" ? "grid" : "none";
+      document.querySelectorAll("nav [data-view]").forEach(b => b.classList.toggle("active", b.dataset.view === view));
+      const titles = { chat: "Commander chat", conversations: "Conversations", projects: "Projects", agents: "Agents", tasks: "Tasks", activity: "Activity", files: "Files", settings: "Settings" };
+      document.getElementById("view-title").textContent = titles[view] || view;
+      if (view === "chat") renderChat();
+      else if (view === "agents") renderAgents();
+      else if (view === "tasks") renderTasks();
+      else if (view === "conversations") renderList("Conversations", (state.conversations||[]).map(c => `<div class="card"><button type="button" data-open="${esc(c.id)}">${esc(c.title)}</button> ${esc(c.created)}</div>`));
+      else if (view === "projects") renderList("Projects", [`<div class="card">Current project: <b>${esc((state.settings||{}).project || "anshux")}</b><p>Select via Settings. Workspace files are written under command_office/workspace.</p></div>`]);
+      else if (view === "activity") renderList("Activity", (state.activity||[]).slice().reverse().map(a => `<div class="card">${esc(a.t)} — ${esc(a.text)}</div>`));
+      else if (view === "files") renderList("Workspace files", (state.files||[]).map(f => `<div class="card"><button type="button" data-file="${esc(f.path)}">${esc(f.path)}</button> ${esc(f.bytes)} bytes</div>`) || ["<p class='hint'>No files yet. Ask Commander to build something.</p>"]);
+      else if (view === "settings") document.getElementById("view").innerHTML =
+        `<div class="card"><p>Server model (COMMANDER_MODEL env, never from the browser): <code>${esc((state.settings||{}).model)}</code></p>
+         <label>Project id</label><input id="proj" value="${esc((state.settings||{}).project||"anshux")}">
+         <button type="button" class="primary" id="save-set">Save project</button>
+         <p class="hint">API keys are server environment variables only.</p></div>`;
+      paintLive();
+    }
+    async function load() {
+      const r = await fetch("/api/command?t=" + Date.now());
+      if (!r.ok) throw new Error("api " + r.status);
+      state = await r.json();
+      if (!cid && state.conversations && state.conversations.length) cid = state.conversations[state.conversations.length - 1].id;
+      paintView();
+    }
+    async function post(url, body) {
+      const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.error || r.status);
+      return data;
+    }
+    document.querySelector("nav").addEventListener("click", (ev) => {
+      const b = ev.target.closest("[data-view]");
+      if (b) { view = b.dataset.view; paintView(); }
+    });
+    document.getElementById("new-chat").addEventListener("click", async () => {
+      const data = await post("/api/command/conversation", {});
+      state = data.state; cid = data.conversation.id; view = "chat"; paintView();
+    });
+    document.getElementById("chat-form").addEventListener("submit", async (ev) => {
+      ev.preventDefault();
+      const text = document.getElementById("msg").value.trim();
+      if (!text) return;
+      document.getElementById("msg").value = "";
+      document.getElementById("err").textContent = "Commander planning…";
+      try {
+        const data = await post("/api/command/chat", { text, conversation_id: cid });
+        cid = data.conversation_id;
+        state = data.state;
+        view = "chat";
+        document.getElementById("err").textContent = "";
+        paintView();
+      } catch (e) {
+        document.getElementById("err").textContent = String(e);
+      }
+    });
+    document.getElementById("view").addEventListener("click", async (ev) => {
+      const act = ev.target.closest("[data-act]");
+      const open = ev.target.closest("[data-open]");
+      const file = ev.target.closest("[data-file]");
+      const save = ev.target.closest("#save-set");
+      try {
+        if (act) {
+          const id = Number(act.dataset.id);
+          if (act.dataset.act === "cancel" && !confirm("Stop task #" + id + "?")) return;
+          const url = { retry: "/api/command/retry", cancel: "/api/command/cancel", approve: "/api/command/approve" }[act.dataset.act];
+          state = (await post(url, { id })).state;
+          paintView();
+        }
+        if (open) { cid = open.dataset.open; view = "chat"; paintView(); }
+        if (file) {
+          const data = await (await fetch("/api/command/file?path=" + encodeURIComponent(file.dataset.file))).json();
+          document.getElementById("view").innerHTML = `<h3>${esc(data.path)}</h3><pre>${esc(data.text)}</pre>`;
+        }
+        if (save) {
+          const settings = (await post("/api/command/settings", { project: document.getElementById("proj").value })).settings;
+          state.settings = settings;
+          paintView();
+        }
+      } catch (e) {
+        document.getElementById("err").textContent = String(e);
+      }
+    });
+    document.getElementById("view").addEventListener("change", async (ev) => {
+      const sel = ev.target.closest("[data-reassign]");
+      if (!sel) return;
+      try {
+        state = (await post("/api/command/reassign", { id: Number(sel.dataset.reassign), agent: sel.value })).state;
+        paintView();
+      } catch (e) {
+        document.getElementById("err").textContent = String(e);
+      }
+    });
+    document.getElementById("toggle-nav").addEventListener("click", () => document.getElementById("rail").classList.toggle("open"));
+    load().catch(e => { document.getElementById("err").textContent = "Keep python team.py office running on http://127.0.0.1:8765/command/"; });
+    setInterval(() => load().catch(() => {}), 4000);
+  </script>
+</body>
+</html>

@@ -402,6 +402,10 @@ class OfficeHandler(SimpleHTTPRequestHandler):
 
     def do_GET(self) -> None:  # noqa: N802
         path = self.path.split("?", 1)[0]
+        from command_office.http import handle_get
+
+        if handle_get(self, path):
+            return
         if path in {"/", "/office", "/office/", "/index.html"}:
             self.path = "/index.html"
         if path == "/api/office":
@@ -412,6 +416,10 @@ class OfficeHandler(SimpleHTTPRequestHandler):
     def do_POST(self) -> None:  # noqa: N802
         path = self.path.split("?", 1)[0]
         body = self._read_json()
+        from command_office.http import handle_post
+
+        if handle_post(self, path, body):
+            return
         if path == "/api/assign":
             try:
                 assign_task(str(body.get("seat") or ""), str(body.get("task") or ""))
@@ -460,10 +468,15 @@ def cmd_office() -> int:
     if httpd is None:
         print("Could not bind 8765-8772. Close the other office window.")
         return 1
+    from command_office.http import boot as boot_command_office
+
+    boot_command_office()
     url = f"http://127.0.0.1:{port}/"
     print()
     print("OFFICE SITE (chat panel is on this page):")
     print(" ", url)
+    print("AI COMMAND OFFICE (Commander + agents):")
+    print(" ", url + "command/")
     print("Do not double-click index.html. That hides the chat API.")
     print("Leave this window open.")
     print()
