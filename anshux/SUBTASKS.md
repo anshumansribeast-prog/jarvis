@@ -1,9 +1,7 @@
-# ANSHUX subtasks — Cursor or Codex (loop until STOP)
+# ANSHUX subtasks
 
 | ID | State | Work |
 | --- | --- | --- |
-| SUB-2 | OPEN (loop) | Re-check Semicolon + Cosmos; update `anshux/SITE_SECURITY_REPORT.md` |
-| SUB-3 | OPEN | Apply `anshux/patches/semicolon-remove-generator.patch` on the Semicolon repo (laptop) |
-| SUB-1 | OPEN | Windows skipif tests after SUB-2 |
-
-Knowledge brains Ada/Beast do not mark DONE.
+| SUB-3 | OPEN — Codex now | Apply `semicolon-simple-again.patch` on `C:\Users\Anshu\semicolon`; deploy |
+| SUB-2 | OPEN | After deploy, confirm generate.html 404 and Ada mobile |
+| SUB-1 | OPEN | Windows skipif tests later |

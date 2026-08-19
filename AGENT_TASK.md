@@ -3,19 +3,19 @@
 PROJECT: ANSHUX
 STATUS: LOOP
 
-MAIN: Codex
+MAIN: Codex (terminal + Cloud)
 CHECK: Cursor
-KNOWLEDGE: Ada, Beast
+FREE TEAM: Aider, Cline, Continue (Ollama)
+BRAINS: Ada, Beast
 
-**Codex Cloud (new account) is MAIN.**
+Team roster: `anshux/TEAM.md`
 
-Task: https://chatgpt.com/codex/cloud/tasks/task_e_6a8542fc5b5c832598c087710241dfcf  
-Environment repo: **anshumansribeast-prog/semicolon** (not jarvis)
+## Codex now
 
-Paste / follow-up with `anshux/CODEX_CLOUD_FOLLOWUP.md`.
+PR https://github.com/anshumansribeast-prog/semicolon/pull/8 removed Generator (good) but also Ada API, Concepts, and `ada.jpg` (bad).
 
-Until `STATUS: STOP`, Codex keeps working. Cursor only verifies the live site after deploy.
+On that PR branch: restore `js/ada-api.js`, `/api/ada`, Concepts, Ada photo. Keep Generator deleted. Do not rebuild Generator.
 
-## Cursor after Codex deploys
+## Cursor after that
 
-`generate.html` 404, no Practice “Run generated”, Ada CSS `?v=20260818a`, phone composer usable.
+Live check: generate.html 404; Ada still chats; Concepts still loads; phone composer usable.
