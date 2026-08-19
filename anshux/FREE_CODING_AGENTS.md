@@ -37,9 +37,44 @@ Then paste the Semicolon task from `anshux/CODEX_CLOUD_TASK.md` (drop Generator,
 
 ## Install Cline (closest to “coding agent”)
 
-1. VS Code → Extensions → **Cline** ([github.com/cline/cline](https://github.com/cline/cline))
-2. API provider: **Ollama** → `http://localhost:11434` → model `llama3.2:3b` (or qwen2.5-coder)
-3. Open the `semicolon` folder, paste `CODEX_CLOUD_TASK.md`
+You already have **Ollama** (Jarvis / Ada). Use that so Cline stays free. Do **not** sign up for Cline’s paid cloud unless you want to pay.
+
+### 1. Confirm Ollama
+
+PowerShell:
+
+```powershell
+ollama list
+curl http://localhost:11434/api/version
+```
+
+If nothing is listed: `ollama pull llama3.2:3b` (you likely already have this). For better coding, if RAM allows: `ollama pull qwen2.5-coder:7b`.
+
+### 2. Install Cline in VS Code (or Cursor)
+
+- `Ctrl+Shift+X` → search **Cline** → Install  
+  Marketplace id: `saoudrizwan.claude-dev`  
+  Or `Ctrl+P`, paste: `ext install saoudrizwan.claude-dev`
+- Docs: [docs.cline.bot/getting-started/installing-cline](https://docs.cline.bot/getting-started/installing-cline)
+
+### 3. Point Cline at Ollama (free)
+
+1. Open folder `C:\Users\Anshu\semicolon` (File → Open Folder).
+2. Click the **Cline** icon in the left bar (or Command Palette → `Cline: Open In New Tab`).
+3. Skip Cline account / “Cline Provider” if you want $0.
+4. Settings (gear) → **API Provider: Ollama**
+5. Base URL: `http://localhost:11434` (some builds want `http://localhost:11434/v1`)
+6. Model: `llama3.2:3b` or `qwen2.5-coder:7b`
+
+### 4. First task
+
+Paste the Semicolon job from `anshux/CODEX_CLOUD_TASK.md`. Approve each file edit and terminal command. If Cline loops or “forgets,” Ollama’s default context is too small — prefer a 7B coder model and a larger context if the laptop can take it.
+
+### 5. If it fails
+
+- Ollama not running: start the Ollama app from the Windows tray.
+- Model missing from the dropdown: run `ollama list`, then reload VS Code.
+- “Connection refused”: URL must be `localhost:11434` and Ollama running.
 
 ## Sources (web, Aug 2026)
 
