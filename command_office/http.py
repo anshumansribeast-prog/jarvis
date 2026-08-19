@@ -62,23 +62,43 @@ def handle_get(handler, path: str) -> bool:
             return True
         handler._json(200, {"ok": True, "path": name, "text": text})
         return True
-    if route == "/api/command/site":
-        from command_office.store import project_slug
+    if route == "/api/command/ship":
+        from command_office.ship import build_report, mailto_link
 
-        slug = (parse_qs(parsed.query).get("project") or [project_slug()])[0]
-        page = (parse_qs(parsed.query).get("page") or ["index.html"])[0]
-        clean = page.replace("\\", "/").lstrip("/")
-        if ".." in clean.split("/") or "/" in clean:
-            handler._json(400, {"ok": False, "error": "invalid page"})
-            return True
-        from command_office import WORKSPACE
+        report = build_report()
+        handler._json(
+            200,
+            {
+                "ok": True,
+                "report": report,
+                "mailto": mailto_link(report),
+                "vr": True,
+            },
+        )
+        return True
+    if route == "/api/command/vr":
+        # Snapshot tailored for the VR room: desks + agents + what they are doing.
+        state = snapshot()
+        office_desks = []
+        try:
+            import team as team_mod
 
-        path = WORKSPACE / "projects" / slug / "site" / clean
-        if not path.is_file():
-            handler.send_error(404)
-            return True
-        ctype = "text/html; charset=utf-8" if clean.endswith(".html") else "text/plain; charset=utf-8"
-        _send_file(handler, path, ctype)
+            office_desks = team_mod.collect_office_state(network=False).get("desks") or []
+        except Exception:
+            office_desks = []
+        agents = state.get("progress", {}).get("agents") or []
+        handler._json(
+            200,
+            {
+                "ok": True,
+                "boss": state.get("boss") or "AnshuX",
+                "desks": office_desks,
+                "agents": agents,
+                "overall_percent": (state.get("progress") or {}).get("overall_percent", 0),
+                "storage": state.get("storage"),
+                "tasks": (state.get("tasks") or [])[-20:],
+            },
+        )
         return True
     return False
 
@@ -115,6 +135,18 @@ def handle_post(handler, path: str, body: dict) -> bool:
             return True
         if path == "/api/command/settings":
             handler._json(200, {"ok": True, "settings": update_settings(body)})
+            return True
+        if path == "/api/command/ship":
+            from command_office.ship import ship_all, set_abhishek_email
+
+            if body.get("abhishek_email"):
+                set_abhishek_email(str(body["abhishek_email"]))
+            result = ship_all(
+                push=bool(body.get("push", True)),
+                mail=bool(body.get("mail", True)),
+            )
+            result["state"] = snapshot()
+            handler._json(200, {"ok": True, **result})
             return True
     except (ValueError, KeyError, TypeError) as exc:
         handler._json(400, {"ok": False, "error": str(exc)})

@@ -13,6 +13,8 @@ office/state.json
 office/assignments.json
 office/chat.json
 office/briefing.json
+office/briefing-abhishek.md
+command_office/data/ship_log.json
 command_office/data/*.json
 command_office/workspace/frontend/
 command_office/workspace/backend/

@@ -87,6 +87,42 @@
     .overall { font-size: 1.4rem; color: var(--amber); margin: 0 0 8px; }
     .stats { display: flex; flex-wrap: wrap; gap: 10px; margin: 8px 0 14px; font-size: .8rem; color: var(--muted); }
     .stats span { border: 1px solid var(--line); padding: 4px 8px; }
+    .vr-stage {
+      height: min(62vh, 520px); perspective: 900px; overflow: hidden;
+      border: 1px solid var(--line); background: radial-gradient(800px 400px at 50% 20%, #1a2a38, #07090d);
+      position: relative; user-select: none; cursor: grab;
+    }
+    .vr-stage:active { cursor: grabbing; }
+    .vr-world {
+      position: absolute; inset: 10% 5% 5%; transform-style: preserve-3d;
+      transform: rotateX(62deg) rotateZ(var(--yaw, -18deg));
+      transition: transform .08s linear;
+    }
+    .vr-floor {
+      position: absolute; inset: 0; background:
+        linear-gradient(#1a303c 1px, transparent 1px) 0 0 / 40px 40px,
+        linear-gradient(90deg, #1a303c 1px, transparent 1px) 0 0 / 40px 40px,
+        #0c141c;
+      transform: translateZ(0);
+      border: 1px solid #2a4a66;
+    }
+    .vr-desk {
+      position: absolute; width: 88px; height: 58px; transform-style: preserve-3d;
+      transform: translate3d(var(--x), var(--y), 0) translateZ(18px);
+    }
+    .vr-desk .top {
+      position: absolute; inset: 0; background: #18222c; border: 1px solid #3d6b8a;
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
+      font-size: .62rem; text-align: center; padding: 4px; color: #dce8f0;
+      box-shadow: 0 0 12px rgba(74,163,255,.15);
+    }
+    .vr-desk.boss .top { border-color: var(--amber); background: #1a2418; }
+    .vr-desk.work .top { border-color: var(--ok); }
+    .vr-desk .label { font-weight: 700; color: var(--amber); }
+    .vr-desk .job { color: #9fb4c4; max-width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .vr-hud { position: absolute; left: 10px; bottom: 8px; right: 10px; font-size: .78rem; color: var(--muted); }
+    .ship-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+    @media (max-width: 800px) { .ship-actions { grid-template-columns: 1fr; } }
     .desk .name { font-weight: 700; }
     .desk .slice { color: var(--amber); font-size: .72rem; margin-top: 4px; letter-spacing: .04em; }
     .desk .task { margin-top: 6px; white-space: pre-wrap; color: var(--paper); }
@@ -119,6 +155,8 @@
         <button type="button" data-view="opencode">OpenCode log</button>
         <button type="button" data-view="floor">Office floor</button>
         <button type="button" data-view="progress">Progress</button>
+        <button type="button" data-view="vr">VR office</button>
+        <button type="button" data-view="ship">Ship · GitHub · Mail</button>
         <button type="button" id="new-chat">New Chat</button>
         <button type="button" data-view="conversations">Conversations</button>
         <button type="button" data-view="projects">Storage</button>
@@ -400,7 +438,8 @@
       document.querySelectorAll("nav [data-view]").forEach(b => b.classList.toggle("active", b.dataset.view === view));
       const titles = {
         chat: "Commander + OpenCode", opencode: "OpenCode log", floor: "Office floor",
-        progress: "Progress", conversations: "Conversations", projects: "Storage", agents: "Agents",
+        progress: "Progress", vr: "VR office", ship: "Ship · GitHub · Mail",
+        conversations: "Conversations", projects: "Storage", agents: "Agents",
         tasks: "Tasks", activity: "Activity", files: "Files", settings: "Settings"
       };
       document.getElementById("view-title").textContent = titles[view] || view;
@@ -408,6 +447,8 @@
       else if (view === "opencode") renderOpenCode();
       else if (view === "floor") renderFloor();
       else if (view === "progress") renderProgress();
+      else if (view === "vr") renderVr();
+      else if (view === "ship") renderShip();
       else if (view === "agents") renderAgents();
       else if (view === "tasks") renderTasks();
       else if (view === "conversations") renderList("Conversations", (state.conversations||[]).map(c => `<div class="card"><button type="button" data-open="${esc(c.id)}">${esc(c.title)}</button> ${esc(c.created)}</div>`));
@@ -417,10 +458,133 @@
       else if (view === "settings") document.getElementById("view").innerHTML =
         `<div class="card"><p>Server model (COMMANDER_MODEL env): <code>${esc((state.settings||{}).model)}</code></p>
          <label>Active storage project id</label><input id="proj" value="${esc((state.settings||{}).project||"anshux")}">
+         <label>Abhishek email</label><input id="abhi-mail" type="email" placeholder="abhishek@example.com" value="${esc((state.settings||{}).abhishek_email||"")}">
          <p class="hint">Folder: command_office/workspace/projects/&lt;id&gt;/ — everyone saves progress here.</p>
-         <button type="button" class="primary" id="save-set">Save project</button></div>`;
+         <button type="button" class="primary" id="save-set">Save settings</button></div>`;
       paintLive();
       fillSeats();
+    }
+    function renderVr() {
+      const desks = office.desks || [];
+      const agents = (progressBoard().agents || []);
+      const layout = [
+        {id:"anshux", x:"42%", y:"8%"},
+        {id:"opencode", x:"10%", y:"28%"},
+        {id:"cursor", x:"28%", y:"28%"},
+        {id:"aider", x:"46%", y:"28%"},
+        {id:"continue", x:"64%", y:"28%"},
+        {id:"cline", x:"18%", y:"52%"},
+        {id:"ada", x:"40%", y:"52%"},
+        {id:"beast", x:"62%", y:"52%"}
+      ];
+      const byId = Object.fromEntries(desks.map(d => [d.id, d]));
+      const agentCards = agents.map((a, i) => {
+        const col = i % 4;
+        const row = Math.floor(i / 4);
+        const x = 12 + col * 22;
+        const y = 72 + row * 14;
+        const job = a.current_task ? `task #${a.current_task}` : (a.last_result || a.status || "");
+        const work = String(a.status||"").toLowerCase().includes("work") || a.percent > 0;
+        return `<div class="vr-desk ${work?"work":""}" style="--x:${x}%;--y:${y}%">
+          <div class="top"><div class="label">${esc(a.name)}</div><div class="job">${esc(job)}</div><div>${esc(a.percent||0)}%</div></div>
+        </div>`;
+      }).join("");
+      const deskCards = layout.map(p => {
+        const d = byId[p.id] || {id:p.id, name:p.id, task:"", status:"idle"};
+        const job = (d.task || d.slice || "").split("\n")[0];
+        const work = String(d.status||"").toLowerCase().includes("work") || d.boss;
+        return `<div class="vr-desk ${d.boss?"boss":""} ${work?"work":""}" style="--x:${p.x};--y:${p.y}">
+          <div class="top"><div class="label">${esc(d.name)}</div><div class="job" title="${esc(job)}">${esc(job.slice(0,42))}</div></div>
+        </div>`;
+      }).join("");
+      document.getElementById("view").innerHTML = `
+        <div class="briefing">
+          <h3>Hey AnshuX — VR office</h3>
+          <p class="meta">Drag to look around. Each desk shows what that person is working on. Agents sit at the back wall.</p>
+          <div class="overall">${esc(progressBoard().overall_percent||0)}% office complete</div>
+        </div>
+        <div class="vr-stage" id="vr-stage">
+          <div class="vr-world" id="vr-world">
+            <div class="vr-floor"></div>
+            ${deskCards}${agentCards}
+          </div>
+          <div class="vr-hud">Drag sideways to rotate · green rim = working · amber = your boss desk</div>
+        </div>
+        <div class="cards" style="margin-top:12px">
+          ${(desks||[]).map(d => `<div class="card"><b>${esc(d.name)}</b><br>${esc(String(d.task||"").split("\n")[0].slice(0,120))}</div>`).join("")}
+        </div>`;
+      const stage = document.getElementById("vr-stage");
+      const world = document.getElementById("vr-world");
+      let yaw = -18, dragging = false, lastX = 0;
+      if (stage && world) {
+        stage.addEventListener("pointerdown", (ev) => { dragging = true; lastX = ev.clientX; stage.setPointerCapture(ev.pointerId); });
+        stage.addEventListener("pointerup", () => { dragging = false; });
+        stage.addEventListener("pointermove", (ev) => {
+          if (!dragging) return;
+          yaw += (ev.clientX - lastX) * 0.25;
+          lastX = ev.clientX;
+          world.style.setProperty("--yaw", yaw + "deg");
+        });
+      }
+    }
+    async function renderShip() {
+      document.getElementById("view").innerHTML = `<p class="hint">Building ship report…</p>`;
+      let report = {}, mailto = "#";
+      try {
+        const data = await (await fetch("/api/command/ship?t=" + Date.now())).json();
+        report = data.report || {};
+        mailto = data.mailto || "#";
+      } catch (e) {
+        document.getElementById("view").innerHTML = `<p class="err">${esc(String(e))}</p>`;
+        return;
+      }
+      const board = report.progress || progressBoard();
+      document.getElementById("view").innerHTML = `
+        <div class="briefing">
+          <h3>Hey AnshuX — end the loop</h3>
+          <p class="meta">See the work in VR, push to GitHub, mail Abhishek. Make it perfect.</p>
+          <div class="overall">${esc(board.overall_percent||0)}% ready to ship</div>
+        </div>
+        <div class="card">
+          <p><b>GitHub</b>: <a href="${esc(report.pr_url||"#")}" target="_blank" rel="noopener">${esc(report.pr_url||"PR")}</a></p>
+          <p>Branch <code>${esc(report.branch||"")}</code> · report file <code>${esc(report.path||"")}</code></p>
+          <label>Abhishek email</label>
+          <input id="ship-abhi" type="email" placeholder="abhishek@example.com" value="${esc(report.abhishek_email||(state.settings||{}).abhishek_email||"")}">
+          <div class="ship-actions">
+            <button type="button" class="secondary" id="ship-push">Push to GitHub</button>
+            <a class="secondary" id="ship-mailto" href="${esc(mailto)}" style="display:block;text-align:center;text-decoration:none;line-height:2.2">Open mail to Abhishek</a>
+            <button type="button" class="primary" id="ship-all" style="grid-column:1/-1">Ship all — push + mail</button>
+          </div>
+          <p class="err" id="ship-err"></p>
+        </div>
+        <h3>Report preview</h3>
+        <pre>${esc(report.body||"")}</pre>`;
+      const err = document.getElementById("ship-err");
+      async function runShip(opts) {
+        err.textContent = "Shipping…";
+        try {
+          const email = document.getElementById("ship-abhi").value.trim();
+          const data = await post("/api/command/ship", {
+            abhishek_email: email,
+            push: !!opts.push,
+            mail: !!opts.mail
+          });
+          if (data.state) state = data.state;
+          const pushOk = !opts.push || (data.push && data.push.ok);
+          const mailNote = data.mail && data.mail.ok
+            ? `Mailed ${data.mail.to}`
+            : (data.mailto ? "Mail draft ready — use Open mail to Abhishek" : (data.mail && data.mail.error) || "");
+          err.textContent = (pushOk ? "Pushed. " : "Push issue. ") + mailNote;
+          if (data.mailto) document.getElementById("ship-mailto").href = data.mailto;
+          if (data.report && data.report.body) {
+            document.querySelector("#view pre").textContent = data.report.body;
+          }
+        } catch (e) {
+          err.textContent = String(e);
+        }
+      }
+      document.getElementById("ship-push").onclick = () => runShip({push:true, mail:false});
+      document.getElementById("ship-all").onclick = () => runShip({push:true, mail:true});
     }
     function renderStorage() {
       const s = state.storage || {};
@@ -561,7 +725,10 @@
           document.getElementById("view").innerHTML = `<h3>${esc(data.path)}</h3><pre>${esc(data.text)}</pre>`;
         }
         if (save) {
-          state.settings = (await post("/api/command/settings", { project: document.getElementById("proj").value })).settings;
+          state.settings = (await post("/api/command/settings", {
+            project: document.getElementById("proj").value,
+            abhishek_email: (document.getElementById("abhi-mail") || {}).value || ""
+          })).settings;
           paintView();
         }
       } catch (e) {

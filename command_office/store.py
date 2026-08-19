@@ -297,6 +297,9 @@ def update_settings(patch: dict) -> dict:
         settings["model"] = MODEL
         if "project" in patch:
             settings["project"] = slugify(str(patch["project"]))
+        if "abhishek_email" in patch:
+            email = str(patch.get("abhishek_email") or "").strip()[:120]
+            settings["abhishek_email"] = email
         _save("settings.json", settings)
         return settings
 
