@@ -16,4 +16,6 @@ command_office/data/*.json
 command_office/workspace/frontend/
 command_office/workspace/backend/
 command_office/workspace/commander/
+command_office/workspace/projects/*/
+!command_office/workspace/projects/.gitkeep
 screenshots/
