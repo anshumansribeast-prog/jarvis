@@ -12,7 +12,9 @@ from command_office.store import (
     _save,
     add_conversation,
     append_message,
+    ensure_project,
     get_conversation,
+    infer_project_from_text,
     log_activity,
     next_task_id,
     save_agents,
@@ -167,6 +169,8 @@ def commander_chat(text: str, conversation_id: str | None = None) -> dict:
     if not conversation_id:
         conversation_id = add_conversation()["id"]
     append_message(conversation_id, {"role": "user", "text": text, "t": _stamp(), "kind": "text"})
+    named = infer_project_from_text(text)
+    storage = ensure_project(goal=text if planned_kind_hint(text) else "", slug=named)
     planned = plan(text)
     office = {}
     if planned["kind"] != "status":
@@ -174,7 +178,7 @@ def commander_chat(text: str, conversation_id: str | None = None) -> dict:
     if planned["kind"] == "status":
         tasks = snapshot()["tasks"]
         agents = snapshot()["agents"]
-        lines = ["## Everyone's progress"]
+        lines = ["## Everyone's progress", f"Storage: `command_office/workspace/{storage['path']}/`"]
         for a in agents:
             last = a.get("last_task")
             last_bit = f" last=#{last} {a.get('last_result')}" if last else ""
@@ -184,6 +188,13 @@ def commander_chat(text: str, conversation_id: str | None = None) -> dict:
             )
         for t in tasks[-12:]:
             lines.append(f"- #{t['id']} {t['title']} — {t['status']} ({t['agent']})")
+        try:
+            from command_office.store import read_workspace_file
+
+            prog = read_workspace_file(storage["progress"])
+            lines.append("\n## Storage PROGRESS.md (tail)\n" + prog[-1500:])
+        except FileNotFoundError:
+            pass
         msg = {
             "role": "commander",
             "kind": "progress",
@@ -191,7 +202,7 @@ def commander_chat(text: str, conversation_id: str | None = None) -> dict:
             "t": _stamp(),
         }
         append_message(conversation_id, msg)
-        return {"conversation_id": conversation_id, "message": msg, "state": snapshot(), "office": office}
+        return {"conversation_id": conversation_id, "message": msg, "state": snapshot(), "office": office, "storage": storage}
 
     created = create_tasks_from_plan(planned)
     if created and not planned.get("destructive"):
@@ -203,10 +214,16 @@ def commander_chat(text: str, conversation_id: str | None = None) -> dict:
     cmd_note = ""
     if cmd_row:
         cmd_note = f" COMMANDER also ran: {cmd_row.get('output') or cmd_row.get('errors') or cmd_row.get('status')}."
+    storage = state.get("storage") or storage
+    where = (
+        f"\n\n**Where to see the work:** open **Storage** in the left nav "
+        f"(folder `command_office/workspace/{storage['path']}/`). "
+        f"Everyone saves into `PROGRESS.md`, `site/`, and `notes/`."
+    )
     msg = {
         "role": "commander",
         "kind": "plan",
-        "text": planned["summary"] + cmd_note,
+        "text": planned["summary"] + cmd_note + where,
         "tasks": created,
         "t": _stamp(),
         "needs_approval": planned.get("destructive", False),
@@ -215,7 +232,10 @@ def commander_chat(text: str, conversation_id: str | None = None) -> dict:
     follow = {
         "role": "commander",
         "kind": "progress",
-        "text": "OpenCode + COMMANDER started every desk. Commander did a slice of the work.",
+        "text": (
+            "OpenCode + COMMANDER started every desk. Commander did a slice of the work. "
+            f"Shared storage: command_office/workspace/{storage['path']}/"
+        ),
         "t": _stamp(),
     }
     append_message(conversation_id, follow)
@@ -226,7 +246,16 @@ def commander_chat(text: str, conversation_id: str | None = None) -> dict:
         "state": state,
         "created": created,
         "office": office,
+        "storage": storage,
     }
+
+
+def planned_kind_hint(text: str) -> bool:
+    """True when chat looks like build/fix work that should refresh GOAL.md."""
+    low = (text or "").lower()
+    if "progress" in low or low in {"status", "show status"} or "show me everyone" in low:
+        return False
+    return True
 
 
 def retry_task(tid: int) -> dict:

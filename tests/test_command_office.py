@@ -60,6 +60,13 @@ def test_commander_chat_writes_workspace(office_data):
     assert stub.is_file()
     planf = office_data / "workspace" / "commander" / "plan.md"
     assert planf.is_file()
+    site = office_data / "workspace" / "projects" / "anshux" / "site" / "index.html"
+    progress = office_data / "workspace" / "projects" / "anshux" / "PROGRESS.md"
+    assert site.is_file()
+    assert progress.is_file()
+    assert "frontend" in progress.read_text(encoding="utf-8")
+    assert result.get("storage", {}).get("path") == "projects/anshux"
+    assert state.get("storage", {}).get("path") == "projects/anshux"
     frontend = next(t for t in state["tasks"] if t["agent"] == "frontend")
     assert frontend["status"] == "COMPLETED"
     assert "login.html" in frontend["output"]
@@ -91,7 +98,19 @@ def test_snapshot_upgrades_legacy_idle_status(office_data):
     assert result["created"]
 
 
-def test_new_conversation_and_progress(office_data):
+def test_named_site_gets_own_storage(office_data):
+    result = commander_chat("Build a website called bakery-shop")
+    assert result["storage"]["slug"] == "bakery-shop"
+    root = office_data / "workspace" / "projects" / "bakery-shop"
+    assert (root / "site" / "index.html").is_file()
+    assert (root / "PROGRESS.md").is_file()
+    assert "Storage" in result["message"]["text"] or "storage" in result["message"]["text"].lower()
+
+
+def test_infer_project_from_text():
+    assert store.infer_project_from_text("Build a website called MyCafe") == "mycafe"
+    assert store.infer_project_from_text("just say hi") is None
+
     first = commander_chat("Check the project.")
     cid = first["conversation_id"]
     second = commander_chat("Show me everyone's progress.", cid)

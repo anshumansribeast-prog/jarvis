@@ -98,14 +98,14 @@
         <button type="button" data-view="floor">Office floor</button>
         <button type="button" id="new-chat">New Chat</button>
         <button type="button" data-view="conversations">Conversations</button>
-        <button type="button" data-view="projects">Projects</button>
+        <button type="button" data-view="projects">Storage</button>
         <button type="button" data-view="agents">Agents</button>
         <button type="button" data-view="tasks">Tasks</button>
         <button type="button" data-view="activity">Activity</button>
         <button type="button" data-view="files">Files</button>
         <button type="button" data-view="settings">Settings</button>
       </nav>
-      <p class="hint">OpenCode chat panel and COMMANDER are one lead. Send once; everyone starts.</p>
+      <p class="hint">Tell Commander to build a site. Everyone saves into Storage (`projects/…`). Open Storage to see PROGRESS.md and the site files.</p>
     </aside>
     <section class="main">
       <div class="bar">
@@ -196,6 +196,8 @@
          <div class="row"><span>OpenCode</span><span>${statusDot("work")}Architect</span></div>
          <h2>Floor desks</h2>` +
         (office.desks || []).map(d => `<div class="row"><span>${esc(d.name)}</span><span>${statusDot(d.status)}${esc(d.status || "idle")}</span></div>`).join("") +
+         `<h2>Storage</h2>
+         <div class="row"><span>${esc((state.storage||{}).path || "projects/…")}</span><span>${esc(((state.storage||{}).files||[]).length)} files</span></div>` +
         `<h2>Agents</h2>` +
         agents.map(a => `<div class="row"><span>${esc(a.name)}</span><span>${agentStatusLine(a)}</span></div>`).join("") +
         `<h2>Tasks</h2>` +
@@ -298,7 +300,7 @@
       document.querySelectorAll("nav [data-view]").forEach(b => b.classList.toggle("active", b.dataset.view === view));
       const titles = {
         chat: "Commander + OpenCode", opencode: "OpenCode log", floor: "Office floor",
-        conversations: "Conversations", projects: "Projects", agents: "Agents",
+        conversations: "Conversations", projects: "Storage", agents: "Agents",
         tasks: "Tasks", activity: "Activity", files: "Files", settings: "Settings"
       };
       document.getElementById("view-title").textContent = titles[view] || view;
@@ -308,15 +310,36 @@
       else if (view === "agents") renderAgents();
       else if (view === "tasks") renderTasks();
       else if (view === "conversations") renderList("Conversations", (state.conversations||[]).map(c => `<div class="card"><button type="button" data-open="${esc(c.id)}">${esc(c.title)}</button> ${esc(c.created)}</div>`));
-      else if (view === "projects") renderList("Projects", [`<div class="card">Current project: <b>${esc((state.settings||{}).project || "anshux")}</b></div>`]);
+      else if (view === "projects") renderStorage();
       else if (view === "activity") renderList("Activity", (state.activity||[]).slice().reverse().map(a => `<div class="card">${esc(a.t)} — ${esc(a.text)}</div>`));
       else if (view === "files") renderList("Workspace files", (state.files||[]).map(f => `<div class="card"><button type="button" data-file="${esc(f.path)}">${esc(f.path)}</button> ${esc(f.bytes)} bytes</div>`));
       else if (view === "settings") document.getElementById("view").innerHTML =
         `<div class="card"><p>Server model (COMMANDER_MODEL env): <code>${esc((state.settings||{}).model)}</code></p>
-         <label>Project id</label><input id="proj" value="${esc((state.settings||{}).project||"anshux")}">
+         <label>Active storage project id</label><input id="proj" value="${esc((state.settings||{}).project||"anshux")}">
+         <p class="hint">Folder: command_office/workspace/projects/&lt;id&gt;/ — everyone saves progress here.</p>
          <button type="button" class="primary" id="save-set">Save project</button></div>`;
       paintLive();
       fillSeats();
+    }
+    function renderStorage() {
+      const s = state.storage || {};
+      const files = (s.files || []).map(f =>
+        `<div class="card"><button type="button" data-file="${esc(f.path)}">${esc(f.path)}</button> ${esc(f.bytes)} bytes</div>`
+      );
+      const projects = (s.projects || []).map(p =>
+        `<div class="card">${p.active ? "<b>ACTIVE · </b>" : ""}${esc(p.slug)} · ${esc(p.files)} files · <code>${esc(p.path)}</code></div>`
+      );
+      document.getElementById("view").innerHTML = `
+        <div class="card">
+          <h3>Shared site storage</h3>
+          <p>Everyone (COMMANDER, agents, desks) writes progress into one folder:</p>
+          <p><code>command_office/workspace/${esc(s.path || "projects/…")}/</code></p>
+          <p><a href="/api/command/site?project=${encodeURIComponent(s.slug || "")}" target="_blank" rel="noopener">Open site preview</a>
+             · progress file <code>${esc(s.progress || "PROGRESS.md")}</code></p>
+        </div>
+        <h3>Projects</h3>${projects.join("") || "<p class='hint'>No projects yet — chat “build a website called my-site”.</p>"}
+        <h3>PROGRESS.md</h3><pre>${esc(s.progress_text || "(empty)")}</pre>
+        <h3>Files in this project</h3>${files.join("") || "<p class='hint'>No files yet.</p>"}`;
     }
     async function loadCommand() {
       const r = await fetch("/api/command?t=" + Date.now());

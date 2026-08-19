@@ -62,6 +62,24 @@ def handle_get(handler, path: str) -> bool:
             return True
         handler._json(200, {"ok": True, "path": name, "text": text})
         return True
+    if route == "/api/command/site":
+        from command_office.store import project_slug
+
+        slug = (parse_qs(parsed.query).get("project") or [project_slug()])[0]
+        page = (parse_qs(parsed.query).get("page") or ["index.html"])[0]
+        clean = page.replace("\\", "/").lstrip("/")
+        if ".." in clean.split("/") or "/" in clean:
+            handler._json(400, {"ok": False, "error": "invalid page"})
+            return True
+        from command_office import WORKSPACE
+
+        path = WORKSPACE / "projects" / slug / "site" / clean
+        if not path.is_file():
+            handler.send_error(404)
+            return True
+        ctype = "text/html; charset=utf-8" if clean.endswith(".html") else "text/plain; charset=utf-8"
+        _send_file(handler, path, ctype)
+        return True
     return False
 
 
