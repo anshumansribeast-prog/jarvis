@@ -8,7 +8,7 @@ KNOWLEDGE BRAINS: Ada, Beast
 
 **Until `STATUS: STOP`, keep working.**
 
-Codex Cloud free limit is **hit**. Free replacements: `anshux/FREE_CODING_AGENTS.md` (Aider or Cline + your existing **Ollama**).
+Codex Cloud free limit is **hit**. Use **Aider + Ollama**: `anshux/AIDER_START.md`.
 
 ## Cursor — after Codex deploys
 

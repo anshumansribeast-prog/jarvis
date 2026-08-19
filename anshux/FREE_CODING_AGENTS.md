@@ -20,61 +20,28 @@ Skip paying Codex until you want Cloud PRs again.
 - **Claude Code** — paid; not in ANSHUX.
 - **Old Gemini CLI “1000/day”** — Google ended consumer Gemini CLI / Code Assist individuals on **18 Jun 2026**. Replacement is **Antigravity**; quota is tighter and not a Codex clone. Try only if you already have a Google account and it still offers a free Antigravity slice: [Google I/O / Antigravity CLI note](https://developers.googleblog.com/en/an-important-update-transitioning-gemini-cli-to-antigravity-cli/).
 
-## Install Aider (recommended today)
+## Getting started: Aider (do this)
 
-In PowerShell, in `C:\Users\Anshu\semicolon` or `C:\Users\Anshu\jarvis`:
-
-```powershell
-pip install aider-chat
-# Ollama already used by Jarvis/Ada — pull a stronger coder if the machine can take it:
-# ollama pull qwen2.5-coder:7b
-aider --model ollama/llama3.2:3b
-```
-
-If `qwen2.5-coder:7b` (or `14b`) fits RAM, use that instead of `llama3.2:3b` for better code edits.
-
-Then paste the Semicolon task from `anshux/CODEX_CLOUD_TASK.md` (drop Generator, fix mobile Ada).
-
-## Install Cline (closest to “coding agent”)
-
-You already have **Ollama** (Jarvis / Ada). Use that so Cline stays free. Do **not** sign up for Cline’s paid cloud unless you want to pay.
-
-### 1. Confirm Ollama
-
-PowerShell:
+Full steps: **`anshux/AIDER_START.md`**.
 
 ```powershell
-ollama list
-curl http://localhost:11434/api/version
+python -m pip install aider-install
+aider-install
+setx OLLAMA_API_BASE http://127.0.0.1:11434
 ```
 
-If nothing is listed: `ollama pull llama3.2:3b` (you likely already have this). For better coding, if RAM allows: `ollama pull qwen2.5-coder:7b`.
+New PowerShell window:
 
-### 2. Install Cline in VS Code (or Cursor)
+```powershell
+cd C:\Users\Anshu\semicolon
+aider --model ollama_chat/llama3.2:3b
+```
 
-- `Ctrl+Shift+X` → search **Cline** → Install  
-  Marketplace id: `saoudrizwan.claude-dev`  
-  Or `Ctrl+P`, paste: `ext install saoudrizwan.claude-dev`
-- Docs: [docs.cline.bot/getting-started/installing-cline](https://docs.cline.bot/getting-started/installing-cline)
+Prefer `ollama_chat/qwen2.5-coder:7b` if you ran `ollama pull qwen2.5-coder:7b`. Then paste `anshux/CODEX_CLOUD_TASK.md`.
 
-### 3. Point Cline at Ollama (free)
+## Cline (optional)
 
-1. Open folder `C:\Users\Anshu\semicolon` (File → Open Folder).
-2. Click the **Cline** icon in the left bar (or Command Palette → `Cline: Open In New Tab`).
-3. Skip Cline account / “Cline Provider” if you want $0.
-4. Settings (gear) → **API Provider: Ollama**
-5. Base URL: `http://localhost:11434` (some builds want `http://localhost:11434/v1`)
-6. Model: `llama3.2:3b` or `qwen2.5-coder:7b`
-
-### 4. First task
-
-Paste the Semicolon job from `anshux/CODEX_CLOUD_TASK.md`. Approve each file edit and terminal command. If Cline loops or “forgets,” Ollama’s default context is too small — prefer a 7B coder model and a larger context if the laptop can take it.
-
-### 5. If it fails
-
-- Ollama not running: start the Ollama app from the Windows tray.
-- Model missing from the dropdown: run `ollama list`, then reload VS Code.
-- “Connection refused”: URL must be `localhost:11434` and Ollama running.
+Only if you want a VS Code sidebar instead of the terminal. Same Ollama. See the previous Cline section in git history or Cline’s docs — Aider is the default for ANSHUX now.
 
 ## Sources (web, Aug 2026)
 
