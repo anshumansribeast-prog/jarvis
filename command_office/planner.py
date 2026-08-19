@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 
-from command_office import AGENTS, DESTRUCTIVE
+from command_office import AGENTS, DESTRUCTIVE, greet
 
 
 def is_destructive(text: str) -> bool:
@@ -57,12 +57,12 @@ def plan(text: str) -> dict:
     targeted = _give_to(low)
 
     if "progress" in low or low in {"status", "show status"} or "show me everyone" in low:
-        return {"kind": "status", "summary": "Progress report requested.", "tasks": []}
+        return {"kind": "status", "summary": greet("Progress report for you."), "tasks": []}
 
     if targeted and not any(k in low for k in ("complete", "full", "entire", "system", "website", "authentication")):
         return {
             "kind": "assign",
-            "summary": f"Commander assigned work to {targeted} agent.",
+            "summary": greet(f"Assigned work to {targeted} agent."),
             "tasks": _all_hands(text, [
                 {
                     "title": title,
@@ -118,7 +118,9 @@ def plan(text: str) -> dict:
 
     return {
         "kind": "plan",
-        "summary": "Commander and OpenCode started the whole floor. Commander also does a slice of the work.",
+        "summary": greet(
+            "Commander and OpenCode started the whole floor. Commander also does a slice of the work."
+        ),
         "destructive": destructive,
         "tasks": tasks,
     }

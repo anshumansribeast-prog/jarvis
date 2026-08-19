@@ -26,6 +26,16 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
+try:
+    from command_office import BOSS_NAME, greet
+except Exception:  # pragma: no cover
+    BOSS_NAME = "AnshuX"
+
+    def greet(text: str = "") -> str:
+        base = f"Hey {BOSS_NAME}"
+        return f"{base} — {text}" if text else f"{base}."
+
+
 DESK_IDS = ("opencode", "cursor", "aider", "continue", "cline", "ada", "beast")
 EVERYONE_SEATS = {"all", "everyone", "everybody", "*", "team", "desks", "floor", "office"}
 DESK_META = {
@@ -352,6 +362,13 @@ def collect_office_state(*, network: bool = True) -> dict:
         "idle": idle,
         "assignments": assigned,
         "briefing": briefing,
+        "boss": BOSS_NAME,
+        "greetings": [
+            {"who": d["name"], "text": greet(f"{d['name']} here — ready for your orders.")}
+            for d in desks
+        ] + [
+            {"who": "COMMANDER", "text": greet("COMMANDER online. Chat or assign and the floor moves.")},
+        ],
     }
 
 
@@ -400,11 +417,13 @@ def _desk_brief(desk_id: str, goal: str, *, everyone: bool) -> str:
     meta = DESK_META[desk_id]
     if everyone:
         return (
+            f"{greet('on it.')}\n"
             f"FLOOR GOAL: {goal}\n"
             f"YOUR DESK ({meta['name']} · {meta['role']}): {slice_}\n"
             f"Save progress in Storage. Nobody sits idle."
         )
     return (
+        f"{greet('got your desk task.')}\n"
         f"DESK TASK: {goal}\n"
         f"Role: {meta['role']} · focus: {slice_}"
     )
@@ -440,6 +459,7 @@ def assign_task(seat: str, task: str, start_command: bool = True) -> dict:
             if desk == seat:
                 continue
             data[desk] = (
+                f"{greet('supporting the lead desk.')}\n"
                 f"SUPPORT GOAL: {task}\n"
                 f"YOUR DESK ({DESK_META[desk]['name']}): {DESK_SLICE[desk]}\n"
                 f"Lead desk: {DESK_META[seat]['name']}"
@@ -485,6 +505,7 @@ def assign_task(seat: str, task: str, start_command: bool = True) -> dict:
     record_unified_lead(
         f"Assign → {'everyone' if everyone else seat}: {task}",
         (
+            f"{greet('whole floor is moving.')} "
             f"Floor briefing posted. {len(DESK_IDS)} desks working. "
             f"{'Everyone has a slice.' if everyone else f'{DESK_META[seat]['name']} leads; others support.'} "
             f"Commander agents queued. Storage updated."
@@ -576,7 +597,7 @@ def architect_chat(text: str) -> dict:
     exe = which("opencode")
     if not exe:
         reply = (
-            "Architect queued this. OpenCode is not on PATH "
+            f"{greet('Architect queued this for you.')} OpenCode is not on PATH "
             "(npm install -g opencode-ai). Loop reminder: every office member "
             "needs a task — assign from this floor."
         )
@@ -589,9 +610,13 @@ def architect_chat(text: str) -> dict:
                 text=True,
                 stderr=subprocess.STDOUT,
             )
-            reply = (out or "").strip()[-4000:] or "(empty OpenCode reply)"
+            body = (out or "").strip()[-4000:] or "(empty OpenCode reply)"
+            reply = f"{greet()} {body}"
         except Exception as exc:  # noqa: BLE001
-            reply = f"OpenCode did not answer ({type(exc).__name__}). Message is in the chat log."
+            reply = (
+                f"{greet('OpenCode stumbled.')} ({type(exc).__name__}). "
+                "Message is in the chat log."
+            )
     log.append({"who": "opencode", "text": reply, "t": now})
     save_chat(log)
     return {"reply": reply, "chat": load_chat()[-40:]}

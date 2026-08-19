@@ -154,3 +154,20 @@ def test_find_project_semicolon(tmp_path, monkeypatch):
 
     monkeypatch.setattr(team, "_candidate_dirs", dirs)
     assert team.find_project("semicolon") == fake.resolve()
+
+
+def test_office_greets_anshux(monkeypatch, tmp_path):
+    monkeypatch.setattr(team, "ROOT", tmp_path)
+    monkeypatch.setattr(team, "http_status", lambda url, timeout=4.0: "200")
+    monkeypatch.setattr(team, "_gh_prs", lambda repo: [])
+    monkeypatch.setattr(team, "which", lambda cmd: None)
+    monkeypatch.setattr(team, "tcp_open", lambda *a, **k: False)
+    data = team.collect_office_state(network=False)
+    assert data["boss"] == "AnshuX"
+    assert data["greetings"]
+    assert all("AnshuX" in g["text"] for g in data["greetings"])
+    team.assign_task("everyone", "Ship it")
+    brief = team.load_assignments()
+    assert all("AnshuX" in brief[d] for d in team.DESK_IDS)
+    chat = team.architect_chat("hello")
+    assert "AnshuX" in chat["reply"]

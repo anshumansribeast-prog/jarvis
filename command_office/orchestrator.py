@@ -21,6 +21,7 @@ from command_office.store import (
     save_tasks,
     snapshot,
 )
+from command_office import greet
 
 
 def _stamp() -> str:
@@ -35,7 +36,10 @@ def _start_open_code_floor(text: str) -> dict:
         team_mod.assign_task("everyone", text, start_command=False)
         team_mod.record_unified_lead(
             text,
-            "OpenCode and COMMANDER are one lead. Every desk is started. Commander is doing a slice of the work too.",
+            team_mod.greet(
+                "OpenCode and COMMANDER are one lead. Every desk is started. "
+                "Commander is doing a slice of the work too."
+            ),
         )
         return team_mod.collect_office_state(network=False)
     except Exception:
@@ -178,7 +182,10 @@ def commander_chat(text: str, conversation_id: str | None = None) -> dict:
     if planned["kind"] == "status":
         tasks = snapshot()["tasks"]
         agents = snapshot()["agents"]
-        lines = ["## Everyone's progress", f"Storage: `command_office/workspace/{storage['path']}/`"]
+        lines = [
+            greet("Everyone's progress for you."),
+            f"Storage: `command_office/workspace/{storage['path']}/`",
+        ]
         for a in agents:
             last = a.get("last_task")
             last_bit = f" last=#{last} {a.get('last_result')}" if last else ""
@@ -216,7 +223,7 @@ def commander_chat(text: str, conversation_id: str | None = None) -> dict:
         cmd_note = f" COMMANDER also ran: {cmd_row.get('output') or cmd_row.get('errors') or cmd_row.get('status')}."
     storage = state.get("storage") or storage
     where = (
-        f"\n\n**Where to see the work:** open **Storage** in the left nav "
+        f"\n\n{greet('here is where your work lands.')} Open **Storage** "
         f"(folder `command_office/workspace/{storage['path']}/`). "
         f"Everyone saves into `PROGRESS.md`, `site/`, and `notes/`."
     )
@@ -232,7 +239,7 @@ def commander_chat(text: str, conversation_id: str | None = None) -> dict:
     follow = {
         "role": "commander",
         "kind": "progress",
-        "text": (
+        "text": greet(
             "OpenCode + COMMANDER started every desk. Commander did a slice of the work. "
             f"Shared storage: command_office/workspace/{storage['path']}/"
         ),

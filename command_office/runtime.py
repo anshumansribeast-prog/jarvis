@@ -6,7 +6,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from command_office import ROOT, WORKSPACE
+from command_office import ROOT, WORKSPACE, greet
 from command_office.store import append_progress, ensure_dirs, ensure_project, project_slug
 
 _KEEP_ENV = {"PATH", "HOME", "LANG", "PYTHONPATH", "SYSTEMROOT", "TMP", "TEMP", "USERPROFILE"}
@@ -51,8 +51,9 @@ def _safe_write(rel: str, content: str) -> str:
 
 def _note(slug: str, agent_id: str, text: str) -> str:
     rel = f"projects/{slug}/notes/{agent_id}.md"
-    path = _safe_write(rel, f"# {agent_id}\n\n{text}\n")
-    append_progress(slug, agent_id, text[:240])
+    body = f"# {agent_id}\n\n{greet(text)}\n"
+    path = _safe_write(rel, body)
+    append_progress(slug, agent_id, f"{greet()} {text[:200]}")
     return path
 
 

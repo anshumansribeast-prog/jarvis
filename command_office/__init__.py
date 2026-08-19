@@ -14,6 +14,14 @@ STATIC = PKG / "static"
 DATA = PKG / "data"
 WORKSPACE = PKG / "workspace"
 MODEL = os.environ.get("COMMANDER_MODEL", "ollama/llama3.2:3b")
+# Everyone in the office addresses the boss this way.
+BOSS_NAME = os.environ.get("ANSHUX_BOSS_NAME", "AnshuX")
+
+
+def greet(text: str = "") -> str:
+    """Office greeting line — everyone speaks to AnshuX."""
+    base = f"Hey {BOSS_NAME}"
+    return f"{base} — {text}" if text else f"{base}."
 
 AGENTS = [
     {

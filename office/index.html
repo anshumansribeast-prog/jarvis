@@ -100,6 +100,7 @@
       <div class="brand">
         <div class="k">ANSHUX · AI Command Office</div>
         <h1>COMMANDER</h1>
+        <p class="hint" style="padding:8px 0 0">Hey AnshuX — the whole floor answers to you.</p>
       </div>
       <nav>
         <button type="button" data-view="chat" class="active">Commander + OpenCode</button>
@@ -208,6 +209,7 @@
       const brief = office.briefing || {};
       document.getElementById("live").innerHTML =
         `<h2>Live command center</h2>
+         <div class="row"><span>Boss</span><span>${statusDot("Online")}${esc(office.boss || "AnshuX")}</span></div>
          <div class="row"><span>Commander</span><span>${statusDot("Online")}Online</span></div>
          <div class="row"><span>OpenCode</span><span>${statusDot("work")}Architect</span></div>
          <h2>Floor goal</h2>
@@ -236,7 +238,7 @@
         if (m.needs_approval) extra += `<div class="card">Approval required before destructive work runs.</div>`;
         return `<article class="msg ${who}"><div class="who">${esc(who)}</div><div>${md(m.text || "")}</div>${extra}</article>`;
       }).join("");
-      document.getElementById("view").innerHTML = `<div id="cmd-log">${html || "<p class='hint'>One chat: COMMANDER + OpenCode. Sending starts every desk. Commander also does a slice of the work.</p>"}</div>`;
+      document.getElementById("view").innerHTML = `<div id="cmd-log">${html || "<p class='hint'>Hey AnshuX — COMMANDER + OpenCode are ready. Send once and everyone greets you and starts.</p>"}</div>`;
     }
     function renderOpenCode() {
       const chat = office.chat || [];
@@ -277,15 +279,20 @@
       const desks = office.desks || [];
       const arch = desks.find(d => d.id === "opencode");
       const brief = office.briefing || {};
+      const greetings = (office.greetings || []).slice(0, 8).map(g =>
+        `<div class="card"><b>${esc(g.who)}</b><br>${esc(g.text)}</div>`
+      ).join("");
       const briefingHtml = brief.goal ? `
         <div class="briefing">
-          <h3>Floor briefing</h3>
+          <h3>Hey AnshuX — floor briefing</h3>
           <div class="meta">${esc(brief.at || "")} · assigned to <b>${esc(brief.seat || "everyone")}</b> · ${esc((brief.targets || []).length || desks.length)} desks</div>
           <div><b>Goal:</b> ${esc(brief.goal)}</div>
-          <p class="hint" style="padding:8px 0 0">Every desk has a slice. Commander agents run the same goal into Storage.</p>
-        </div>` : `<div class="briefing"><h3>Floor ready</h3><p class="meta">Use <b>Assign to whole office</b> so nobody sits idle.</p></div>`;
+          <p class="hint" style="padding:8px 0 0">Every desk greets you and takes a slice. Commander agents save into Storage.</p>
+        </div>` : `<div class="briefing"><h3>Hey AnshuX — floor ready</h3><p class="meta">Use <b>Assign to whole office</b> so nobody sits idle.</p></div>`;
       document.getElementById("view").innerHTML = `
         ${briefingHtml}
+        <h2>Greetings for AnshuX</h2>
+        <div class="cards">${greetings || "<p class='hint'>Loading…</p>"}</div>
         <p class="loop" id="loop">${esc(office.loop || "LOOP: OpenCode, Cursor, Aider, Continue, Cline, Ada, Beast — all must sit here with a task.")}</p>
         <p class="hint" id="when">${esc(office.updated || "")} · idle desks: ${esc((office.idle || []).join(", ") || "none")}</p>
         <h2>Architect’s table</h2>

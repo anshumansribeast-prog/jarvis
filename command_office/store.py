@@ -149,10 +149,27 @@ def next_task_id() -> int:
 
 
 def add_conversation() -> dict:
+    from command_office import greet
+
     with _lock:
         rows = _load("conversations.json", [])
         cid = f"c{len(rows) + 1:04d}"
-        row = {"id": cid, "title": "New chat", "created": _now(), "messages": []}
+        row = {
+            "id": cid,
+            "title": "New chat",
+            "created": _now(),
+            "messages": [
+                {
+                    "role": "commander",
+                    "kind": "greet",
+                    "text": greet(
+                        "COMMANDER here. OpenCode and I are one lead. "
+                        "Tell us what to build — everyone greets you as AnshuX and gets to work."
+                    ),
+                    "t": _now(),
+                }
+            ],
+        }
         rows.append(row)
         _save("conversations.json", rows)
         return row

@@ -229,3 +229,13 @@ def test_command_office_http(office_data, monkeypatch):
         assert any(t["id"] == tid and t["status"] == "CANCELLED" for t in stopped["state"]["tasks"])
     finally:
         httpd.shutdown()
+
+
+def test_commander_greets_anshux(office_data):
+    from command_office.store import add_conversation
+
+    row = add_conversation()
+    assert "AnshuX" in row["messages"][0]["text"]
+    result = commander_chat("Build a website.")
+    assert "AnshuX" in result["message"]["text"]
+    assert "AnshuX" in result["follow"]["text"]
