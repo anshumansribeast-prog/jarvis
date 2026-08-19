@@ -74,7 +74,19 @@
     .loop { border: 1px dashed #3d6b8a; padding: 8px; font-size: .85rem; background: #12202a; }
     #others { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
     .desk { border: 1px solid var(--line); background: #111a22; padding: 8px; min-height: 90px; font-size: .8rem; }
-    .desk.working { border-color: #3d6b8a; box-shadow: inset 0 0 0 1px #2a4a66; }
+    .desk.boss {
+      border: 2px solid var(--amber); background: linear-gradient(140deg, #1a2418, #10161e);
+      grid-column: 1 / -1; min-height: 110px;
+    }
+    .chart-wrap { margin: 12px 0 18px; }
+    .chart-row { display: grid; grid-template-columns: 140px 1fr 52px; gap: 8px; align-items: center; margin: 8px 0; font-size: .85rem; }
+    .bar-track { height: 16px; background: #0b1016; border: 1px solid var(--line); overflow: hidden; }
+    .bar-fill { height: 100%; background: linear-gradient(90deg, #2f6b4f, var(--ok)); transition: width .4s ease; }
+    .bar-fill.mid { background: linear-gradient(90deg, #3d5a80, var(--work)); }
+    .bar-fill.low { background: linear-gradient(90deg, #6b3d3d, var(--bad)); }
+    .overall { font-size: 1.4rem; color: var(--amber); margin: 0 0 8px; }
+    .stats { display: flex; flex-wrap: wrap; gap: 10px; margin: 8px 0 14px; font-size: .8rem; color: var(--muted); }
+    .stats span { border: 1px solid var(--line); padding: 4px 8px; }
     .desk .name { font-weight: 700; }
     .desk .slice { color: var(--amber); font-size: .72rem; margin-top: 4px; letter-spacing: .04em; }
     .desk .task { margin-top: 6px; white-space: pre-wrap; color: var(--paper); }
@@ -106,6 +118,7 @@
         <button type="button" data-view="chat" class="active">Commander + OpenCode</button>
         <button type="button" data-view="opencode">OpenCode log</button>
         <button type="button" data-view="floor">Office floor</button>
+        <button type="button" data-view="progress">Progress</button>
         <button type="button" id="new-chat">New Chat</button>
         <button type="button" data-view="conversations">Conversations</button>
         <button type="button" data-view="projects">Storage</button>
@@ -192,15 +205,63 @@
       return (state.conversations || []).find(c => c.id === cid) || { messages: [] };
     }
     function deskCard(d, architect) {
-      const extra = architect ? `<div class="stamp">ARCH<br><b>OC</b></div>` : "";
-      const working = String(d.status || "").toLowerCase().includes("work");
+      const isBoss = !!d.boss || d.id === "anshux";
+      const extra = architect ? `<div class="stamp">ARCH<br><b>OC</b></div>`
+        : (isBoss ? `<div class="stamp">BOSS<br><b>AX</b></div>` : "");
+      const working = String(d.status || "").toLowerCase().includes("work") || String(d.status || "").toLowerCase() === "online";
       const body = `<div>
         <div class="name">${esc(d.name)} ${working ? statusDot("work") : statusDot(d.status)}</div>
         <div>${esc(d.role)}</div>
-        <div class="slice">YOU: ${esc(d.slice || "")}</div>
+        <div class="slice">${isBoss ? "YOU" : "YOU"}: ${esc(d.slice || "")}</div>
         <div class="task">${esc(d.task)}</div>
       </div>`;
-      return `<article class="${architect ? "architect" : "desk"}${working ? " working" : ""}">${architect ? extra + body : body}</article>`;
+      const cls = isBoss ? "desk boss working" : `${architect ? "architect" : "desk"}${working ? " working" : ""}`;
+      return `<article class="${cls}">${extra ? extra + body : body}</article>`;
+    }
+    function progressBoard() {
+      return state.progress || office.progress || { agents: [], overall_percent: 0 };
+    }
+    function barClass(pct) {
+      if (pct >= 70) return "";
+      if (pct >= 35) return "mid";
+      return "low";
+    }
+    function renderProgress() {
+      const board = progressBoard();
+      const agents = board.agents || [];
+      const rows = agents.map(a => {
+        const pct = Number(a.percent) || 0;
+        return `<div class="chart-row">
+          <div>${esc(a.name)}<br><small>${statusDot(a.status)}${esc(a.status)} · ${esc(a.completed)}/${esc(a.total)}</small></div>
+          <div class="bar-track"><div class="bar-fill ${barClass(pct)}" style="width:${pct}%"></div></div>
+          <div><b>${pct}%</b></div>
+        </div>`;
+      }).join("") || "<p class='hint'>No agent work yet — assign everyone or chat Commander.</p>";
+      const desks = (office.desks || []).filter(d => !d.boss);
+      const deskRows = desks.map(d => {
+        const on = String(d.status || "").toLowerCase().includes("work") ? 100 : 25;
+        return `<div class="chart-row">
+          <div>${esc(d.name)}<br><small>${statusDot(d.status)}${esc(d.status)}</small></div>
+          <div class="bar-track"><div class="bar-fill ${barClass(on)}" style="width:${on}%"></div></div>
+          <div><b>${on}%</b></div>
+        </div>`;
+      }).join("");
+      document.getElementById("view").innerHTML = `
+        <div class="briefing">
+          <h3>Hey AnshuX — your progress desk</h3>
+          <p class="meta">Per-agent charts from Commander tasks + floor desks. Updated ${esc(board.updated || office.updated || "")}</p>
+          <div class="overall">${esc(board.overall_percent || 0)}% office complete</div>
+          <div class="stats">
+            <span>Done ${esc(board.overall_completed || 0)}</span>
+            <span>Total tasks ${esc(board.overall_total || 0)}</span>
+            <span>Goal: ${esc((office.briefing || {}).goal || "—")}</span>
+          </div>
+        </div>
+        <h2>Commander agents</h2>
+        <div class="chart-wrap">${rows}</div>
+        <h2>Floor desks</h2>
+        <div class="chart-wrap">${deskRows || "<p class='hint'>No desks.</p>"}</div>
+        <p class="hint">Open Storage for PROGRESS.md detail. Assign to whole office to move every bar.</p>`;
     }
     function paintLive() {
       const agents = state.agents || [];
@@ -214,6 +275,8 @@
          <div class="row"><span>OpenCode</span><span>${statusDot("work")}Architect</span></div>
          <h2>Floor goal</h2>
          <div class="row"><span>${esc(brief.goal || "—")}</span><span>${esc(brief.seat || "")}</span></div>
+         <h2>Office progress</h2>
+         <div class="row"><span>Complete</span><span>${esc((progressBoard().overall_percent) || 0)}%</span></div>
          <h2>Floor desks</h2>` +
         (office.desks || []).map(d => `<div class="row"><span>${esc(d.name)}</span><span>${statusDot(d.status)}${esc(d.status || "idle")}</span></div>`).join("") +
          `<h2>Storage</h2>
@@ -267,16 +330,17 @@
       const desks = office.desks || [];
       const cur = seat.value || "everyone";
       const opts = [{id:"everyone", name:"Everyone (whole floor)"}].concat(
-        desks.length ? desks : [
+        (desks.length ? desks : [
           {id:"opencode",name:"OpenCode"},{id:"cursor",name:"Cursor"},{id:"aider",name:"Aider"},
           {id:"continue",name:"Continue"},{id:"cline",name:"Cline"},{id:"ada",name:"Ada"},{id:"beast",name:"Beast"}
-        ]
+        ]).filter(d => !d.boss && d.id !== "anshux")
       );
       seat.innerHTML = opts.map(d => `<option value="${esc(d.id)}">${esc(d.name)}</option>`).join("");
       seat.value = opts.some(d => d.id === cur) ? cur : "everyone";
     }
     function renderFloor() {
       const desks = office.desks || [];
+      const boss = desks.find(d => d.boss || d.id === "anshux") || office.boss_desk;
       const arch = desks.find(d => d.id === "opencode");
       const brief = office.briefing || {};
       const greetings = (office.greetings || []).slice(0, 8).map(g =>
@@ -285,12 +349,14 @@
       const briefingHtml = brief.goal ? `
         <div class="briefing">
           <h3>Hey AnshuX — floor briefing</h3>
-          <div class="meta">${esc(brief.at || "")} · assigned to <b>${esc(brief.seat || "everyone")}</b> · ${esc((brief.targets || []).length || desks.length)} desks</div>
+          <div class="meta">${esc(brief.at || "")} · assigned to <b>${esc(brief.seat || "everyone")}</b> · ${esc((brief.targets || []).length || desks.filter(d=>!d.boss).length)} desks</div>
           <div><b>Goal:</b> ${esc(brief.goal)}</div>
-          <p class="hint" style="padding:8px 0 0">Every desk greets you and takes a slice. Commander agents save into Storage.</p>
-        </div>` : `<div class="briefing"><h3>Hey AnshuX — floor ready</h3><p class="meta">Use <b>Assign to whole office</b> so nobody sits idle.</p></div>`;
+          <p class="hint" style="padding:8px 0 0">Your boss desk is below. Open <b>Progress</b> for per-agent charts.</p>
+        </div>` : `<div class="briefing"><h3>Hey AnshuX — floor ready</h3><p class="meta">Sit at your desk · use <b>Assign to whole office</b> · watch <b>Progress</b>.</p></div>`;
       document.getElementById("view").innerHTML = `
         ${briefingHtml}
+        <h2>Your desk</h2>
+        <div>${boss ? deskCard(boss, false) : ""}</div>
         <h2>Greetings for AnshuX</h2>
         <div class="cards">${greetings || "<p class='hint'>Loading…</p>"}</div>
         <p class="loop" id="loop">${esc(office.loop || "LOOP: OpenCode, Cursor, Aider, Continue, Cline, Ada, Beast — all must sit here with a task.")}</p>
@@ -298,7 +364,7 @@
         <h2>Architect’s table</h2>
         <div id="arch-desk">${arch ? deskCard(arch, true) : ""}</div>
         <h2>Every loop member</h2>
-        <div id="others">${desks.filter(d => d.id !== "opencode").map(d => deskCard(d, false)).join("")}</div>
+        <div id="others">${desks.filter(d => d.id !== "opencode" && !d.boss).map(d => deskCard(d, false)).join("")}</div>
         <div class="split" style="margin-top:16px">
           <section id="sites"><h3>Sites</h3>${(office.sites||[]).map(s =>
             `<div><span class="${String(s.code)==="200"?"ok":"bad"}">${esc(s.code)}</span> ${esc(s.name)}<br><a href="${esc(s.url)}">${esc(s.url)}</a></div>`
@@ -334,13 +400,14 @@
       document.querySelectorAll("nav [data-view]").forEach(b => b.classList.toggle("active", b.dataset.view === view));
       const titles = {
         chat: "Commander + OpenCode", opencode: "OpenCode log", floor: "Office floor",
-        conversations: "Conversations", projects: "Storage", agents: "Agents",
+        progress: "Progress", conversations: "Conversations", projects: "Storage", agents: "Agents",
         tasks: "Tasks", activity: "Activity", files: "Files", settings: "Settings"
       };
       document.getElementById("view-title").textContent = titles[view] || view;
       if (view === "chat") renderChat();
       else if (view === "opencode") renderOpenCode();
       else if (view === "floor") renderFloor();
+      else if (view === "progress") renderProgress();
       else if (view === "agents") renderAgents();
       else if (view === "tasks") renderTasks();
       else if (view === "conversations") renderList("Conversations", (state.conversations||[]).map(c => `<div class="card"><button type="button" data-open="${esc(c.id)}">${esc(c.title)}</button> ${esc(c.created)}</div>`));

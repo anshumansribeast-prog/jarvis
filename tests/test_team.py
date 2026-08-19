@@ -138,7 +138,13 @@ def test_office_site_serves_chat_panel(monkeypatch, tmp_path):
         assert not assigned["office"]["idle"]
         assert "Keep LOOP moving" in assigned["office"]["assignments"]["ada"]
         assert assigned["office"]["briefing"]["seat"] == "everyone"
-        assert all(d["status"] == "working" for d in assigned["office"]["desks"])
+        assert all(
+            d["status"] == "working"
+            for d in assigned["office"]["desks"]
+            if not d.get("boss") and d.get("id") != "anshux"
+        )
+        assert any(d.get("boss") or d["id"] == "anshux" for d in assigned["office"]["desks"])
+        assert "Progress" in home or "progress" in home.lower()
     finally:
         httpd.shutdown()
 
@@ -166,8 +172,25 @@ def test_office_greets_anshux(monkeypatch, tmp_path):
     assert data["boss"] == "AnshuX"
     assert data["greetings"]
     assert all("AnshuX" in g["text"] for g in data["greetings"])
+    boss = next(d for d in data["desks"] if d.get("boss") or d["id"] == "anshux")
+    assert boss["name"] == "AnshuX"
+    assert "anshux" not in data["members"]
+    assert data.get("progress") is not None
     team.assign_task("everyone", "Ship it")
     brief = team.load_assignments()
     assert all("AnshuX" in brief[d] for d in team.DESK_IDS)
     chat = team.architect_chat("hello")
     assert "AnshuX" in chat["reply"]
+
+
+def test_boss_desk_and_progress_board(monkeypatch, tmp_path):
+    monkeypatch.setattr(team, "ROOT", tmp_path)
+    monkeypatch.setattr(team, "http_status", lambda url, timeout=4.0: "200")
+    monkeypatch.setattr(team, "_gh_prs", lambda repo: [])
+    monkeypatch.setattr(team, "which", lambda cmd: None)
+    monkeypatch.setattr(team, "tcp_open", lambda *a, **k: False)
+    team.assign_task("everyone", "Ship progress charts")
+    data = team.collect_office_state(network=False)
+    assert data["boss_desk"]["id"] == "anshux"
+    assert "Ship progress charts" in data["boss_desk"]["task"]
+    assert "Progress" in data["boss_desk"]["task"] or "progress" in data["boss_desk"]["task"].lower()

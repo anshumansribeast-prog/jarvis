@@ -6,7 +6,7 @@ import threading
 from datetime import datetime, timezone
 from pathlib import Path
 
-from command_office import AGENTS, DATA, MODEL, WORKSPACE
+from command_office import AGENTS, DATA, MODEL, WORKSPACE, BOSS_NAME
 
 _lock = threading.RLock()
 
@@ -122,6 +122,7 @@ def snapshot() -> dict:
         settings = _load("settings.json", {"model": MODEL, "project": "anshux"})
         settings["model"] = MODEL
         storage = project_snapshot()
+        board = progress_board(agents=agents, tasks=tasks)
         return {
             "agents": agents,
             "conversations": convos,
@@ -130,9 +131,72 @@ def snapshot() -> dict:
             "settings": settings,
             "files": list_workspace_files(),
             "storage": storage,
+            "progress": board,
             "now": _now(),
             "commander": {"name": "COMMANDER", "status": "Online", "model": MODEL},
+            "boss": BOSS_NAME,
         }
+
+
+def progress_board(agents: list | None = None, tasks: list | None = None) -> dict:
+    """Per-agent progress for AnshuX's chart desk."""
+    agents = agents if agents is not None else _load("agents.json", [])
+    tasks = tasks if tasks is not None else _load("tasks.json", [])
+    by_agent: dict[str, list] = {}
+    for t in tasks:
+        aid = str(t.get("agent") or "")
+        by_agent.setdefault(aid, []).append(t)
+    rows = []
+    for a in agents:
+        aid = a.get("id")
+        mine = by_agent.get(aid, [])
+        total = len(mine)
+        completed = sum(1 for t in mine if t.get("status") == "COMPLETED")
+        failed = sum(1 for t in mine if t.get("status") == "FAILED")
+        running = sum(1 for t in mine if t.get("status") in {"RUNNING", "QUEUED", "ASSIGNED", "WAITING"})
+        review = sum(1 for t in mine if t.get("status") == "NEEDS_REVIEW")
+        if total:
+            pct = int(round(100 * completed / total))
+        elif str(a.get("status") or "").lower() in {"ready"}:
+            pct = 100
+        elif str(a.get("status") or "").lower() in {"failed"}:
+            pct = 0
+        else:
+            pct = 0
+        # Blend last task progress when available.
+        if mine:
+            last = mine[-1]
+            try:
+                last_p = int(last.get("progress") or 0)
+            except (TypeError, ValueError):
+                last_p = 0
+            if last.get("status") == "RUNNING":
+                pct = max(pct, last_p)
+        rows.append({
+            "id": aid,
+            "name": a.get("name") or aid,
+            "status": a.get("status") or "Idle",
+            "total": total,
+            "completed": completed,
+            "failed": failed,
+            "running": running,
+            "review": review,
+            "percent": max(0, min(100, pct)),
+            "last_task": a.get("last_task") or (mine[-1]["id"] if mine else None),
+            "last_result": a.get("last_result"),
+            "current_task": a.get("current_task"),
+        })
+    overall_total = sum(r["total"] for r in rows) or sum(1 for _ in tasks)
+    overall_done = sum(r["completed"] for r in rows)
+    overall_pct = int(round(100 * overall_done / overall_total)) if overall_total else 0
+    return {
+        "boss": BOSS_NAME,
+        "overall_percent": overall_pct,
+        "overall_completed": overall_done,
+        "overall_total": overall_total or len(tasks),
+        "agents": rows,
+        "updated": _now(),
+    }
 
 
 def log_activity(text: str) -> None:

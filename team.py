@@ -38,7 +38,10 @@ except Exception:  # pragma: no cover
 
 DESK_IDS = ("opencode", "cursor", "aider", "continue", "cline", "ada", "beast")
 EVERYONE_SEATS = {"all", "everyone", "everybody", "*", "team", "desks", "floor", "office"}
+# AnshuX sits at the boss desk — not a worker seat in assign-everyone.
+BOSS_DESK_ID = "anshux"
 DESK_META = {
+    "anshux": {"name": "AnshuX", "role": "Boss desk"},
     "opencode": {"name": "OpenCode", "role": "Architect of the office"},
     "cursor": {"name": "Cursor", "role": "Checker"},
     "aider": {"name": "Aider", "role": "Builder"},
@@ -57,6 +60,7 @@ DEFAULT_DESK_TASKS = {
     "beast": "Tutor on cosmos.punah.pro — astronomy only.",
 }
 DESK_SLICE = {
+    "anshux": "lead the office · watch progress charts",
     "opencode": "plan and assign",
     "cursor": "check and test",
     "aider": "implement Semicolon fixes",
@@ -272,7 +276,21 @@ def collect_office_state(*, network: bool = True) -> dict:
     ollama = tcp_open("127.0.0.1", 11434)
     ada = tcp_open("127.0.0.1", 8420)
     sites, prs = _sites_and_prs(network=network)
+    boss_desk = {
+        "id": BOSS_DESK_ID,
+        "name": BOSS_NAME,
+        "role": "Boss desk — your seat",
+        "task": (
+            assigned_boss_task()
+            or "Watch Progress charts · assign the floor · open Storage · chat Commander"
+        ),
+        "status": "online",
+        "slice": DESK_SLICE["anshux"],
+        "boss": True,
+        "assigned": True,
+    }
     desks = [
+        boss_desk,
         {
             "id": "opencode",
             "name": "OpenCode",
@@ -338,9 +356,13 @@ def collect_office_state(*, network: bool = True) -> dict:
             filled = True
     if filled:
         save_assignments(assigned)
+    # Refresh boss desk task after assignments load.
+    desks[0]["task"] = assigned_boss_task() or desks[0]["task"]
     idle = []
     briefing = load_briefing()
     for desk in desks:
+        if desk.get("boss"):
+            continue
         extra = assigned.get(desk["id"])
         if extra:
             desk["task"] = extra
@@ -348,14 +370,22 @@ def collect_office_state(*, network: bool = True) -> dict:
             desk["status"] = "working"
         else:
             idle.append(desk["id"])
+    progress = {}
+    try:
+        from command_office.store import progress_board
+
+        progress = progress_board()
+    except Exception:
+        progress = {}
     return {
         "updated": _dt.datetime.now(tz=_dt.timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
         "architect": "OpenCode",
         "inspector": "OpenCode",
         "loop": "Every office member must have a desk and a task. STATUS LOOP until STOP.",
-        "members": [d["id"] for d in desks],
+        "members": [d["id"] for d in desks if not d.get("boss")],
         "ollama": ollama,
         "desks": desks,
+        "boss_desk": boss_desk,
         "sites": sites,
         "prs": prs,
         "chat": load_chat()[-40:],
@@ -363,13 +393,29 @@ def collect_office_state(*, network: bool = True) -> dict:
         "assignments": assigned,
         "briefing": briefing,
         "boss": BOSS_NAME,
+        "progress": progress,
         "greetings": [
+            {"who": BOSS_NAME, "text": greet("your boss desk is open — Progress charts are ready.")},
+        ] + [
             {"who": d["name"], "text": greet(f"{d['name']} here — ready for your orders.")}
             for d in desks
+            if not d.get("boss")
         ] + [
             {"who": "COMMANDER", "text": greet("COMMANDER online. Chat or assign and the floor moves.")},
         ],
     }
+
+
+def assigned_boss_task() -> str:
+    briefing = load_briefing()
+    goal = str(briefing.get("goal") or "").strip()
+    if goal:
+        return (
+            f"{greet('watching the floor.')}\n"
+            f"CURRENT GOAL: {goal}\n"
+            f"Open Progress for per-agent charts. Assign or chat to move everyone."
+        )
+    return ""
 
 
 def _office_dir() -> Path:

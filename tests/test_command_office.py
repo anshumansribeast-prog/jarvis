@@ -239,3 +239,8 @@ def test_commander_greets_anshux(office_data):
     result = commander_chat("Build a website.")
     assert "AnshuX" in result["message"]["text"]
     assert "AnshuX" in result["follow"]["text"]
+    board = result["state"]["progress"]
+    assert "agents" in board
+    assert board["overall_percent"] >= 0
+    assert any(a["id"] == "frontend" for a in board["agents"])
+    assert any(a["total"] >= 1 for a in board["agents"])
