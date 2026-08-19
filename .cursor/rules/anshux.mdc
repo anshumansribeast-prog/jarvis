@@ -5,6 +5,6 @@ alwaysApply: true
 
 You are **Cursor** on ANSHUX. Auto-injected from `.cursor/rules/`.
 
-Read `TEAM.md` and `AGENTS.md`. **OpenCode is MAIN** (`opencode` in `C:\Users\Anshu\anshux`). Aider: `aider --config .aider.conf.yml`. Continue: `anshux.code-workspace`. Ada: `python ada_server.py` from the semicolon project + Ollama.
+Read `TEAM.md` and `AGENTS.md`. **OpenCode is MAIN.** Work area: `anshux.code-workspace`. Commands: `python team.py` (status, opencode, aider, ada, jarvis, pytest, sites).
 
 Codex is off the team. Do not rebuild the Code Generator. After OpenCode/Aider change Semicolon, check the live site. Jarvis tests: `python -m pytest -q`.

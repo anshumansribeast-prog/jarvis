@@ -2,7 +2,7 @@
 
 Team file: **`anshux/TEAM.md`**.
 
-**MAIN:** OpenCode (`opencode`). **CHECK:** Cursor. **FREE backups:** Aider, Cline, Continue (Ollama). **Brains:** Ada, Beast.
+**MAIN:** OpenCode (`python team.py opencode`). **CHECK:** Cursor. **Hub:** open `anshux.code-workspace`, then `python team.py` for the command menu.
 
 Codex is off the team.
 

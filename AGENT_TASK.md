@@ -8,8 +8,7 @@ CHECK: Cursor
 FREE TEAM: Aider, Cline, Continue (Ollama)
 BRAINS: Ada, Beast
 
-Team roster: `anshux/TEAM.md`
-Codex: off the team.
+Work area: open `anshux.code-workspace`. Commands: `python team.py`.
 
 ## OpenCode now
 

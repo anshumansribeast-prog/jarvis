@@ -7,4 +7,5 @@ voices/
 config/facts.json
 _test_stdout.log
 _test_stderr.log
+_ada_server.log
 screenshots/

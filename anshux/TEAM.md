@@ -4,11 +4,11 @@ How we start:
 
 | Who | How |
 | --- | --- |
-| **OpenCode** | `cd C:\Users\Anshu\anshux` then `opencode`. Auto-reads `AGENTS.md`. Extra: `opencode.json` → `TEAM.md`. |
-| **Aider** | Same folder: `aider --config .aider.conf.yml`. Role card: `.team/aider.md`. |
-| **Cursor** | Open this folder. `.cursor/rules/*.mdc` injects into new chats. |
-| **Continue** | Open `anshux.code-workspace`. Reads `AGENTS.md` + `.continue/rules/anshux.md`. |
-| **Ada** | `cd C:\Users\Anshu\semicolon` (or `projects\semicolon`) then `python ada_server.py`. Ollama. |
+| **OpenCode** | `python team.py opencode` from `C:\Users\Anshu\anshux`. Auto-reads `AGENTS.md`. |
+| **Aider** | `python team.py aider` |
+| **Cursor** | Open `anshux.code-workspace`. `.cursor/rules/*.mdc` injects into new chats. |
+| **Continue** | Same workspace. Reads `AGENTS.md` + `.continue/rules/anshux.md`. |
+| **Ada** | `python team.py ada` |
 
 | Seat | Agent | Role | Status |
 | --- | --- | --- | --- |

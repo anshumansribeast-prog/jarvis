@@ -8,10 +8,10 @@ Codex is **off** the team.
 
 | Agent | Start | Auto-reads |
 | --- | --- | --- |
-| OpenCode | `opencode` in this folder | `AGENTS.md`, `TEAM.md` via `opencode.json` |
-| Aider | `aider --config .aider.conf.yml` | `.team/aider.md` |
-| Cursor | Open folder / this workspace | `.cursor/rules/*.mdc` |
-| Continue | `anshux.code-workspace` | `.continue/rules/anshux.md` + `AGENTS.md` |
-| Ada | `python ada_server.py` from semicolon | Ollama |
+| OpenCode | `python team.py opencode` (or `opencode`) | `AGENTS.md`, `TEAM.md` via `opencode.json` |
+| Aider | `python team.py aider` | `.team/aider.md` |
+| Cursor | Open `anshux.code-workspace` | `.cursor/rules/*.mdc` |
+| Continue | same workspace | `.continue/rules/anshux.md` + `AGENTS.md` |
+| Ada | `python team.py ada` | Ollama |
 
-Full roster: `TEAM.md`. Semicolon work: keep Generator gone; do not delete Ada API or Concepts.
+Command hub: `python team.py status` — see every system. Full roster: `TEAM.md`. Semicolon work: keep Generator gone; do not delete Ada API or Concepts.

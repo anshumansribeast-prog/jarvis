@@ -1,15 +1,24 @@
 {
   "folders": [
-    { "name": "ANSHUX", "path": "." },
-    { "name": "semicolon", "path": "../semicolon" }
+    { "name": "ANSHUX-board", "path": "." },
+    { "name": "team-cards", "path": ".team" },
+    { "name": "semicolon", "path": "../semicolon" },
+    { "name": "cosmos", "path": "../cosmos" }
   ],
   "settings": {
+    "workbench.startupEditor": "readme",
+    "terminal.integrated.cwd": "${workspaceFolder:ANSHUX-board}",
     "files.exclude": {
       "**/__pycache__": true,
       "voices": true
-    }
+    },
+    "task.allowAutomaticTasks": "on"
   },
   "extensions": {
     "recommendations": ["Continue.continue"]
+  },
+  "launch": {
+    "version": "0.2.0",
+    "configurations": []
   }
 }
