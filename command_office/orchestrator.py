@@ -25,6 +25,21 @@ def _stamp() -> str:
     return datetime.now(tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
+def _start_open_code_floor(text: str) -> dict:
+    """Talking to Commander starts OpenCode and every desk."""
+    try:
+        import team as team_mod
+
+        team_mod.assign_task("everyone", text, start_command=False)
+        team_mod.record_unified_lead(
+            text,
+            "OpenCode and COMMANDER are one lead. Every desk is started. Commander is doing a slice of the work too.",
+        )
+        return team_mod.collect_office_state(network=False)
+    except Exception:
+        return {}
+
+
 def _tasks() -> list:
     return _load("tasks.json", [])
 
@@ -145,7 +160,9 @@ def commander_chat(text: str, conversation_id: str | None = None) -> dict:
         conversation_id = add_conversation()["id"]
     append_message(conversation_id, {"role": "user", "text": text, "t": _stamp(), "kind": "text"})
     planned = plan(text)
-    cards = []
+    office = {}
+    if planned["kind"] != "status":
+        office = _start_open_code_floor(text)
     if planned["kind"] == "status":
         tasks = snapshot()["tasks"]
         agents = snapshot()["agents"]
@@ -161,18 +178,22 @@ def commander_chat(text: str, conversation_id: str | None = None) -> dict:
             "t": _stamp(),
         }
         append_message(conversation_id, msg)
-        return {"conversation_id": conversation_id, "message": msg, "state": snapshot()}
+        return {"conversation_id": conversation_id, "message": msg, "state": snapshot(), "office": office}
 
     created = create_tasks_from_plan(planned)
     if created and not planned.get("destructive"):
-        process_due_tasks(limit=len(created) + 3)
+        process_due_tasks(limit=max(12, len(created) + 4))
     state = snapshot()
     ids = {int(t["id"]) for t in created}
     created = [t for t in state["tasks"] if int(t["id"]) in ids]
+    cmd_row = next((t for t in created if t.get("agent") == "commander"), None)
+    cmd_note = ""
+    if cmd_row:
+        cmd_note = f" COMMANDER also ran: {cmd_row.get('output') or cmd_row.get('errors') or cmd_row.get('status')}."
     msg = {
         "role": "commander",
         "kind": "plan",
-        "text": planned["summary"],
+        "text": planned["summary"] + cmd_note,
         "tasks": created,
         "t": _stamp(),
         "needs_approval": planned.get("destructive", False),
@@ -181,7 +202,7 @@ def commander_chat(text: str, conversation_id: str | None = None) -> dict:
     follow = {
         "role": "commander",
         "kind": "progress",
-        "text": "Updated task board after Commander orchestration.",
+        "text": "OpenCode + COMMANDER started every desk. Commander did a slice of the work.",
         "t": _stamp(),
     }
     append_message(conversation_id, follow)
@@ -191,6 +212,7 @@ def commander_chat(text: str, conversation_id: str | None = None) -> dict:
         "follow": follow,
         "state": state,
         "created": created,
+        "office": office,
     }
 
 

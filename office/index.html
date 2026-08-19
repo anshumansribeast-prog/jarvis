@@ -93,8 +93,8 @@
         <h1>COMMANDER</h1>
       </div>
       <nav>
-        <button type="button" data-view="chat" class="active">Commander chat</button>
-        <button type="button" data-view="opencode">OpenCode chat panel</button>
+        <button type="button" data-view="chat" class="active">Commander + OpenCode</button>
+        <button type="button" data-view="opencode">OpenCode log</button>
         <button type="button" data-view="floor">Office floor</button>
         <button type="button" id="new-chat">New Chat</button>
         <button type="button" data-view="conversations">Conversations</button>
@@ -105,7 +105,7 @@
         <button type="button" data-view="files">Files</button>
         <button type="button" data-view="settings">Settings</button>
       </nav>
-      <p class="hint">One site: Commander agents + OpenCode desks. Same server as before.</p>
+      <p class="hint">OpenCode chat panel and COMMANDER are one lead. Send once; everyone starts.</p>
     </aside>
     <section class="main">
       <div class="bar">
@@ -139,8 +139,8 @@
       <div id="view"></div>
       <p class="err" id="err"></p>
       <form class="composer" id="cmd-form">
-        <textarea id="cmd-msg" required placeholder="Build a website. Fix the login bug. Give the frontend work to Frontend Agent."></textarea>
-        <button class="primary" type="submit">Send to Commander</button>
+        <textarea id="cmd-msg" required placeholder="Chat here. Commander and OpenCode are one lead — everyone starts, Commander also does a slice."></textarea>
+        <button class="primary" type="submit">Send to Commander + OpenCode</button>
       </form>
     </section>
     <aside class="live" id="live"></aside>
@@ -208,7 +208,7 @@
         if (m.needs_approval) extra += `<div class="card">Approval required before destructive work runs.</div>`;
         return `<article class="msg ${who}"><div class="who">${esc(who)}</div><div>${md(m.text || "")}</div>${extra}</article>`;
       }).join("");
-      document.getElementById("view").innerHTML = `<div id="cmd-log">${html || "<p class='hint'>Talk to COMMANDER here. OpenCode is on the OpenCode tab. The floor still has every desk.</p>"}</div>`;
+      document.getElementById("view").innerHTML = `<div id="cmd-log">${html || "<p class='hint'>One chat: COMMANDER + OpenCode. Sending starts every desk. Commander also does a slice of the work.</p>"}</div>`;
     }
     function renderOpenCode() {
       const chat = office.chat || [];
@@ -289,7 +289,7 @@
       document.getElementById("cmd-form").classList.toggle("on", view === "chat");
       document.querySelectorAll("nav [data-view]").forEach(b => b.classList.toggle("active", b.dataset.view === view));
       const titles = {
-        chat: "Commander chat", opencode: "OpenCode chat panel", floor: "Office floor",
+        chat: "Commander + OpenCode", opencode: "OpenCode log", floor: "Office floor",
         conversations: "Conversations", projects: "Projects", agents: "Agents",
         tasks: "Tasks", activity: "Activity", files: "Files", settings: "Settings"
       };
@@ -358,6 +358,7 @@
         const data = await post("/api/command/chat", { text, conversation_id: cid });
         cid = data.conversation_id;
         state = data.state;
+        if (data.office) office = data.office;
         view = "chat";
         document.getElementById("err").textContent = "";
         paintView();

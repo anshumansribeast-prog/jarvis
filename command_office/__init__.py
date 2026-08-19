@@ -17,6 +17,13 @@ MODEL = os.environ.get("COMMANDER_MODEL", "ollama/llama3.2:3b")
 
 AGENTS = [
     {
+        "id": "commander",
+        "name": "COMMANDER",
+        "role": "Lead + doer",
+        "capabilities": ["plan", "assign the floor", "write the plan", "do a slice"],
+        "model": MODEL,
+    },
+    {
         "id": "frontend",
         "name": "Frontend Agent",
         "role": "UI",

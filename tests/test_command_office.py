@@ -34,6 +34,7 @@ def office_data(tmp_path, monkeypatch):
     monkeypatch.setattr(store, "DATA", data)
     monkeypatch.setattr(store, "WORKSPACE", work)
     monkeypatch.setattr(runtime, "WORKSPACE", work)
+    monkeypatch.setattr(team, "ROOT", tmp_path)
     store.ensure_dirs()
     return tmp_path
 
@@ -41,8 +42,10 @@ def office_data(tmp_path, monkeypatch):
 def test_plan_auth_system():
     doc = plan("Build a complete authentication system.")
     agents = [t["agent"] for t in doc["tasks"]]
-    assert agents == ["backend", "frontend", "security", "testing", "review"]
-    assert doc["tasks"][2]["depends"] == [0, 1]
+    assert agents[0] == "commander"
+    assert "backend" in agents and "frontend" in agents
+    sec = next(t for t in doc["tasks"] if t["title"] == "Review authentication security")
+    assert sec["depends"] == [1, 2]
 
 
 def test_commander_chat_writes_workspace(office_data):
@@ -55,9 +58,15 @@ def test_commander_chat_writes_workspace(office_data):
     stub = office_data / "workspace" / "backend" / "auth_stub.py"
     assert login.is_file()
     assert stub.is_file()
+    planf = office_data / "workspace" / "commander" / "plan.md"
+    assert planf.is_file()
     frontend = next(t for t in state["tasks"] if t["agent"] == "frontend")
     assert frontend["status"] == "COMPLETED"
     assert "login.html" in frontend["output"]
+    cmd = next(t for t in state["tasks"] if t["agent"] == "commander")
+    assert cmd["status"] == "COMPLETED"
+    assert result.get("office")
+    assert not result["office"].get("idle")
 
 
 def test_new_conversation_and_progress(office_data):
@@ -71,7 +80,7 @@ def test_new_conversation_and_progress(office_data):
 
 def test_assign_testing_agent(office_data):
     result = commander_chat("Ask the testing agent to test it.")
-    task = result["created"][0]
+    task = next(t for t in result["created"] if t["agent"] == "testing")
     assert task["agent"] == "testing"
     saved = next(t for t in result["state"]["tasks"] if t["id"] == task["id"])
     assert saved["status"] in {"COMPLETED", "FAILED"}

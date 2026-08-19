@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 
-from command_office import DESTRUCTIVE
+from command_office import AGENTS, DESTRUCTIVE
 
 
 def is_destructive(text: str) -> bool:
@@ -22,6 +22,33 @@ def _give_to(text: str) -> str | None:
     return {"test": "testing", "testing": "testing"}.get(name, name)
 
 
+def _all_hands(text: str, core: list[dict]) -> list[dict]:
+    """Commander does a slice, then every agent gets work. Nobody idle."""
+    tasks = [
+        {
+            "title": "Commander does a slice of the work",
+            "description": text,
+            "agent": "commander",
+            "priority": "high",
+            "depends": [],
+        }
+    ]
+    for spec in core:
+        tasks.append({**spec, "depends": [i + 1 for i in spec.get("depends") or []]})
+    used = {t["agent"] for t in tasks}
+    for agent in AGENTS:
+        if agent["id"] in used:
+            continue
+        tasks.append({
+            "title": f"{agent['name']} support: {text.strip()[:48] or 'floor work'}",
+            "description": text,
+            "agent": agent["id"],
+            "priority": "normal",
+            "depends": [],
+        })
+    return tasks
+
+
 def plan(text: str) -> dict:
     """Turn a Commander request into agent tasks. Deterministic; no cloud keys."""
     low = text.lower().strip()
@@ -29,14 +56,14 @@ def plan(text: str) -> dict:
     title = text.strip()[:80] or "Task"
     targeted = _give_to(low)
 
-    if "progress" in low or "everyone" in low or "status" in low:
+    if "progress" in low or low in {"status", "show status"} or "show me everyone" in low:
         return {"kind": "status", "summary": "Progress report requested.", "tasks": []}
 
     if targeted and not any(k in low for k in ("complete", "full", "entire", "system", "website", "authentication")):
         return {
             "kind": "assign",
             "summary": f"Commander assigned work to {targeted} agent.",
-            "tasks": [
+            "tasks": _all_hands(text, [
                 {
                     "title": title,
                     "description": text.strip(),
@@ -44,7 +71,7 @@ def plan(text: str) -> dict:
                     "priority": "normal",
                     "depends": [],
                 }
-            ],
+            ]),
         }
 
     auth = "auth" in low or "login" in low or "register" in low
@@ -56,42 +83,42 @@ def plan(text: str) -> dict:
     tasks: list[dict] = []
 
     if auth and ("system" in low or "complete" in low or "full" in low):
-        tasks = [
+        tasks = _all_hands(text, [
             {"title": "Build authentication API", "description": text, "agent": "backend", "priority": "high", "depends": []},
             {"title": "Build login/register interface", "description": text, "agent": "frontend", "priority": "high", "depends": []},
             {"title": "Review authentication security", "description": text, "agent": "security", "priority": "high", "depends": [0, 1]},
             {"title": "Test the complete auth system", "description": text, "agent": "testing", "priority": "high", "depends": [0, 1]},
             {"title": "Review final implementation", "description": text, "agent": "review", "priority": "normal", "depends": [2, 3]},
-        ]
+        ])
     elif website or "frontend and backend" in low:
-        tasks = [
+        tasks = _all_hands(text, [
             {"title": "Build frontend", "description": text, "agent": "frontend", "priority": "high", "depends": []},
             {"title": "Build backend", "description": text, "agent": "backend", "priority": "high", "depends": []},
             {"title": "Test frontend and backend", "description": text, "agent": "testing", "priority": "normal", "depends": [0, 1]},
-        ]
+        ])
     elif bug:
-        tasks = [
+        tasks = _all_hands(text, [
             {"title": title, "description": text, "agent": "debugger", "priority": "high", "depends": []},
             {"title": "Regression tests after fix", "description": text, "agent": "testing", "priority": "normal", "depends": [0]},
-        ]
+        ])
     elif check:
-        tasks = [
+        tasks = _all_hands(text, [
             {"title": "Inspect project layout", "description": text, "agent": "research", "priority": "normal", "depends": []},
             {"title": "Run test suite", "description": text, "agent": "testing", "priority": "normal", "depends": []},
             {"title": "Git status", "description": text, "agent": "devops", "priority": "low", "depends": []},
-        ]
+        ])
     elif tests:
-        tasks = [{"title": "Run tests", "description": text, "agent": "testing", "priority": "high", "depends": []}]
+        tasks = _all_hands(text, [{"title": "Run tests", "description": text, "agent": "testing", "priority": "high", "depends": []}])
     else:
-        tasks = [
+        tasks = _all_hands(text, [
             {"title": title, "description": text, "agent": "research", "priority": "normal", "depends": []},
             {"title": "Implement requested work", "description": text, "agent": "backend", "priority": "normal", "depends": [0]},
             {"title": "Verify with tests", "description": text, "agent": "testing", "priority": "normal", "depends": [1]},
-        ]
+        ])
 
     return {
         "kind": "plan",
-        "summary": "Commander split the request into agent tasks.",
+        "summary": "Commander and OpenCode started the whole floor. Commander also does a slice of the work.",
         "destructive": destructive,
         "tasks": tasks,
     }

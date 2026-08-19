@@ -360,7 +360,7 @@ def save_assignments(data: dict) -> None:
     )
 
 
-def assign_task(seat: str, task: str) -> dict:
+def assign_task(seat: str, task: str, start_command: bool = True) -> dict:
     seat = seat.lower().strip().replace(" ", "")
     aliases = {"opencod": "opencode", "open": "opencode", "arch": "opencode"}
     seat = aliases.get(seat, seat)
@@ -379,7 +379,7 @@ def assign_task(seat: str, task: str) -> dict:
             if desk != seat:
                 data[desk] = f"{DEFAULT_DESK_TASKS[desk]} | also: {task}"
     save_assignments(data)
-    if not os.environ.get("PYTEST_CURRENT_TEST"):
+    if start_command and not os.environ.get("PYTEST_CURRENT_TEST"):
         try:
             _queue_command_work(task)
         except Exception:
@@ -427,6 +427,15 @@ def load_chat() -> list:
 
 def save_chat(rows: list) -> None:
     (_office_dir() / "chat.json").write_text(json.dumps(rows[-80:], indent=2), encoding="utf-8")
+
+
+def record_unified_lead(text: str, reply: str) -> None:
+    """One chat: Commander and OpenCode share the same lead log."""
+    now = _dt.datetime.now(tz=_dt.timezone.utc).strftime("%H:%M")
+    log = load_chat()
+    log.append({"who": "you", "text": text, "t": now})
+    log.append({"who": "opencode", "text": reply, "t": now})
+    save_chat(log)
 
 
 def architect_chat(text: str) -> dict:

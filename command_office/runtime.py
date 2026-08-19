@@ -54,6 +54,17 @@ def run_agent(agent_id: str, task: dict) -> tuple[bool, str]:
     title = task.get("title") or ""
     desc = task.get("description") or title
 
+    if agent_id == "commander":
+        names = sorted(p.name for p in ROOT.iterdir() if not p.name.startswith("."))[:30]
+        body = (
+            f"# Commander slice\n\nRequest:\n\n{desc}\n\n"
+            f"OpenCode and Commander are one lead. Floor started.\n\n"
+            f"Repo top-level: {', '.join(names)}\n"
+        )
+        path = _safe_write("commander/plan.md", body)
+        note = _safe_write("commander/slice.txt", f"COMMANDER executed this request:\n{title}\n")
+        return True, f"Commander wrote {path} and {note}"
+
     if agent_id == "frontend":
         html = (
             "<!DOCTYPE html><html><head><meta charset='utf-8'><title>Auth UI</title></head>"

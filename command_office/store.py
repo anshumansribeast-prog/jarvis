@@ -19,6 +19,7 @@ def ensure_dirs() -> None:
     WORKSPACE.mkdir(parents=True, exist_ok=True)
     (WORKSPACE / "frontend").mkdir(exist_ok=True)
     (WORKSPACE / "backend").mkdir(exist_ok=True)
+    (WORKSPACE / "commander").mkdir(exist_ok=True)
 
 
 def _path(name: str) -> Path:
@@ -43,6 +44,8 @@ def _save(name: str, data) -> None:
 def snapshot() -> dict:
     with _lock:
         agents = _load("agents.json", [])
+        have = {a.get("id") for a in agents}
+        changed = False
         if not agents:
             agents = [
                 {
@@ -54,6 +57,20 @@ def snapshot() -> dict:
                 }
                 for a in AGENTS
             ]
+            changed = True
+        else:
+            for spec in AGENTS:
+                if spec["id"] not in have:
+                    agents.insert(0 if spec["id"] == "commander" else len(agents), {
+                        **spec,
+                        "status": "Idle",
+                        "current_task": None,
+                        "history": [],
+                        "logs": [],
+                    })
+                    have.add(spec["id"])
+                    changed = True
+        if changed:
             _save("agents.json", agents)
         convos = _load("conversations.json", [])
         tasks = _load("tasks.json", [])
