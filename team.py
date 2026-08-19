@@ -27,7 +27,16 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 DESK_IDS = ("opencode", "cursor", "aider", "continue", "cline", "ada", "beast")
-EVERYONE_SEATS = {"all", "everyone", "everybody", "*", "team", "desks"}
+EVERYONE_SEATS = {"all", "everyone", "everybody", "*", "team", "desks", "floor", "office"}
+DESK_META = {
+    "opencode": {"name": "OpenCode", "role": "Architect of the office"},
+    "cursor": {"name": "Cursor", "role": "Checker"},
+    "aider": {"name": "Aider", "role": "Builder"},
+    "continue": {"name": "Continue", "role": "Editor chat"},
+    "cline": {"name": "Cline", "role": "Optional builder"},
+    "ada": {"name": "Ada", "role": "Semicolon tutor"},
+    "beast": {"name": "Beast", "role": "Cosmos tutor"},
+}
 DEFAULT_DESK_TASKS = {
     "opencode": "Architect: inspect both sites and keep every desk busy.",
     "cursor": "Checker: pytest; confirm nobody is idle.",
@@ -260,6 +269,7 @@ def collect_office_state(*, network: bool = True) -> dict:
             "role": "Architect of the office",
             "task": "Design the floor; inspect Semicolon + Cosmos; assign tasks in the office chat.",
             "status": "on" if oc else "idle",
+            "slice": DESK_SLICE["opencode"],
         },
         {
             "id": "cursor",
@@ -267,6 +277,7 @@ def collect_office_state(*, network: bool = True) -> dict:
             "role": "Checker",
             "task": "Check the architect’s drawing; pytest; every loop member is on the floor.",
             "status": "on",
+            "slice": DESK_SLICE["cursor"],
         },
         {
             "id": "aider",
@@ -274,6 +285,7 @@ def collect_office_state(*, network: bool = True) -> dict:
             "role": "Builder",
             "task": "Restore Ada API + Concepts on Semicolon PR #8",
             "status": "on" if which("aider") else "idle",
+            "slice": DESK_SLICE["aider"],
         },
         {
             "id": "continue",
@@ -281,6 +293,7 @@ def collect_office_state(*, network: bool = True) -> dict:
             "role": "Editor chat",
             "task": "Open anshux.code-workspace; follow assigned task",
             "status": "idle",
+            "slice": DESK_SLICE["continue"],
         },
         {
             "id": "cline",
@@ -288,6 +301,7 @@ def collect_office_state(*, network: bool = True) -> dict:
             "role": "Optional builder",
             "task": "Help Aider if OpenCode assigns you work. Stay off if unused.",
             "status": "idle",
+            "slice": DESK_SLICE["cline"],
         },
         {
             "id": "ada",
@@ -295,6 +309,7 @@ def collect_office_state(*, network: bool = True) -> dict:
             "role": "Semicolon tutor",
             "task": "pages/ada.html — teach only, no git",
             "status": "on" if ada else "idle",
+            "slice": DESK_SLICE["ada"],
         },
         {
             "id": "beast",
@@ -302,6 +317,7 @@ def collect_office_state(*, network: bool = True) -> dict:
             "role": "Cosmos tutor",
             "task": "cosmos.punah.pro — astronomy only",
             "status": "idle",
+            "slice": DESK_SLICE["beast"],
         },
     ]
     assigned = load_assignments()
@@ -313,12 +329,13 @@ def collect_office_state(*, network: bool = True) -> dict:
     if filled:
         save_assignments(assigned)
     idle = []
+    briefing = load_briefing()
     for desk in desks:
         extra = assigned.get(desk["id"])
         if extra:
             desk["task"] = extra
             desk["assigned"] = True
-            desk["status"] = "on"
+            desk["status"] = "working"
         else:
             idle.append(desk["id"])
     return {
@@ -334,6 +351,7 @@ def collect_office_state(*, network: bool = True) -> dict:
         "chat": load_chat()[-40:],
         "idle": idle,
         "assignments": assigned,
+        "briefing": briefing,
     }
 
 
@@ -360,37 +378,146 @@ def save_assignments(data: dict) -> None:
     )
 
 
+def load_briefing() -> dict:
+    path = _office_dir() / "briefing.json"
+    if not path.is_file():
+        return {}
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
+def save_briefing(data: dict) -> None:
+    (_office_dir() / "briefing.json").write_text(
+        json.dumps(data, indent=2), encoding="utf-8"
+    )
+
+
+def _desk_brief(desk_id: str, goal: str, *, everyone: bool) -> str:
+    slice_ = DESK_SLICE[desk_id]
+    meta = DESK_META[desk_id]
+    if everyone:
+        return (
+            f"FLOOR GOAL: {goal}\n"
+            f"YOUR DESK ({meta['name']} · {meta['role']}): {slice_}\n"
+            f"Save progress in Storage. Nobody sits idle."
+        )
+    return (
+        f"DESK TASK: {goal}\n"
+        f"Role: {meta['role']} · focus: {slice_}"
+    )
+
+
 def assign_task(seat: str, task: str, start_command: bool = True) -> dict:
+    """Assign like a real office: every named desk gets work; Everyone fills the floor."""
     seat = seat.lower().strip().replace(" ", "")
-    aliases = {"opencod": "opencode", "open": "opencode", "arch": "opencode"}
+    aliases = {
+        "opencod": "opencode",
+        "open": "opencode",
+        "arch": "opencode",
+        "architect": "opencode",
+    }
     seat = aliases.get(seat, seat)
     task = task.strip()
     if not seat or not task:
         raise ValueError("Need a desk id and a task")
     data = load_assignments()
-    if seat in EVERYONE_SEATS:
-        for desk in DESK_IDS:
-            data[desk] = f"{task} — you: {DESK_SLICE[desk]}"
+    everyone = seat in EVERYONE_SEATS
+    targets: list[str]
+    if everyone:
+        targets = list(DESK_IDS)
+        for desk in targets:
+            data[desk] = _desk_brief(desk, task, everyone=True)
     elif seat not in DESK_IDS:
         raise ValueError("Unknown desk. Use everyone or: " + ", ".join(DESK_IDS))
     else:
-        data[seat] = task
+        targets = [seat]
+        data[seat] = _desk_brief(seat, task, everyone=False)
+        # Real office: when one desk gets a lead task, others keep supporting the same goal.
         for desk in DESK_IDS:
-            if desk != seat:
-                data[desk] = f"{DEFAULT_DESK_TASKS[desk]} | also: {task}"
+            if desk == seat:
+                continue
+            data[desk] = (
+                f"SUPPORT GOAL: {task}\n"
+                f"YOUR DESK ({DESK_META[desk]['name']}): {DESK_SLICE[desk]}\n"
+                f"Lead desk: {DESK_META[seat]['name']}"
+            )
+        targets = list(DESK_IDS)
     save_assignments(data)
+
+    now = _dt.datetime.now(tz=_dt.timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    briefing = {
+        "goal": task,
+        "seat": "everyone" if everyone else seat,
+        "targets": targets,
+        "at": now,
+        "lines": [
+            {"id": d, "name": DESK_META[d]["name"], "task": data[d]}
+            for d in DESK_IDS
+        ],
+    }
+    save_briefing(briefing)
+
+    storage: dict = {}
+    # Shared Storage log + OpenCode lead chat so the floor briefing is visible.
+    try:
+        from command_office.store import append_progress, ensure_project, infer_project_from_text
+
+        named = infer_project_from_text(task)
+        storage = ensure_project(goal=task, slug=named)
+        who = "everyone" if everyone else seat
+        append_progress(
+            storage["slug"],
+            "floor",
+            f"Assigned to {who}: {task[:180]}",
+        )
+        for desk in DESK_IDS:
+            append_progress(
+                storage["slug"],
+                desk,
+                f"{DESK_SLICE[desk]} — {task[:100]}",
+            )
+    except Exception:
+        storage = {}
+
+    record_unified_lead(
+        f"Assign → {'everyone' if everyone else seat}: {task}",
+        (
+            f"Floor briefing posted. {len(DESK_IDS)} desks working. "
+            f"{'Everyone has a slice.' if everyone else f'{DESK_META[seat]['name']} leads; others support.'} "
+            f"Commander agents queued. Storage updated."
+        ),
+    )
+
+    command_state = None
+    created = []
     if start_command and not os.environ.get("PYTEST_CURRENT_TEST"):
         try:
-            _queue_command_work(task)
+            created = _queue_command_work(task)
+            from command_office.store import snapshot
+
+            command_state = snapshot()
         except Exception:
-            pass
+            command_state = None
+
     write_office_state()
-    return data
+    office = collect_office_state(network=False)
+    return {
+        "assignments": data,
+        "briefing": briefing,
+        "office": office,
+        "command": command_state,
+        "created": created,
+        "storage": storage,
+        "everyone": everyone,
+    }
 
 
-def _queue_command_work(goal: str) -> None:
-    """Queue Commander agents so they are not left Idle after a floor assign."""
-    from command_office.orchestrator import create_tasks_from_plan
+def _queue_command_work(goal: str) -> list:
+    """Queue + run Commander agents so assign-everyone is not desks-only."""
+    from command_office.orchestrator import create_tasks_from_plan, process_due_tasks
     from command_office.store import snapshot
 
     snap = snapshot()
@@ -404,14 +531,17 @@ def _queue_command_work(goal: str) -> None:
         if agent["id"] in busy:
             continue
         specs.append({
-            "title": (goal[:56] or "Floor work") + f" [{agent['id']}]",
+            "title": (goal[:48] or "Floor work") + f" [{agent['id']}]",
             "description": goal,
             "agent": agent["id"],
             "priority": "normal",
             "depends": [],
         })
+    created = []
     if specs:
-        create_tasks_from_plan({"kind": "plan", "destructive": False, "tasks": specs})
+        created = create_tasks_from_plan({"kind": "plan", "destructive": False, "tasks": specs})
+        process_due_tasks(limit=max(12, len(created) + 4))
+    return created
 
 
 def load_chat() -> list:
@@ -519,11 +649,22 @@ class OfficeHandler(SimpleHTTPRequestHandler):
             return
         if path == "/api/assign":
             try:
-                assign_task(str(body.get("seat") or ""), str(body.get("task") or ""))
+                result = assign_task(str(body.get("seat") or ""), str(body.get("task") or ""))
             except ValueError as exc:
                 self._json(400, {"ok": False, "error": str(exc)})
                 return
-            self._json(200, {"ok": True, "office": collect_office_state(network=False)})
+            self._json(
+                200,
+                {
+                    "ok": True,
+                    "office": result.get("office") or collect_office_state(network=False),
+                    "command": result.get("command"),
+                    "briefing": result.get("briefing"),
+                    "created": result.get("created") or [],
+                    "storage": result.get("storage") or {},
+                    "everyone": bool(result.get("everyone")),
+                },
+            )
             return
         if path == "/api/chat":
             text = str(body.get("text") or "").strip()

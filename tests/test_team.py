@@ -70,7 +70,7 @@ def test_assign_task(monkeypatch, tmp_path):
     for seat in team.DESK_IDS:
         assert data["assignments"].get(seat)
         member = next(d for d in data["desks"] if d["id"] == seat)
-        assert member["status"] == "on"
+        assert member["status"] == "working"
 
 
 def test_assign_everyone(monkeypatch, tmp_path):
@@ -84,7 +84,9 @@ def test_assign_everyone(monkeypatch, tmp_path):
     assert not data["idle"]
     for seat in team.DESK_IDS:
         assert "Ship Semicolon Ada restore" in data["assignments"][seat]
-        assert next(d for d in data["desks"] if d["id"] == seat)["status"] == "on"
+        assert next(d for d in data["desks"] if d["id"] == seat)["status"] == "working"
+    assert data["briefing"]["goal"] == "Ship Semicolon Ada restore"
+    assert data["briefing"]["seat"] == "everyone"
 
 
 def test_architect_chat_queues_without_opencode(monkeypatch, tmp_path):
@@ -111,10 +113,11 @@ def test_office_site_serves_chat_panel(monkeypatch, tmp_path):
     try:
         home = urlreq.urlopen(f"http://127.0.0.1:{port}/", timeout=5).read().decode("utf-8")
         assert "OpenCode chat panel" in home
-        assert "Assign a task" in home
-        assert "Everyone (no idle desks)" in home
+        assert "Assign like a real office" in home or "Assign a task" in home
+        assert "Everyone (whole floor)" in home or "Everyone (no idle desks)" in home
         assert "COMMANDER" in home
         assert "Office floor" in home
+        assert "Assign to whole office" in home
         req = urlreq.Request(
             f"http://127.0.0.1:{port}/api/chat",
             data=json.dumps({"text": "hello architect"}).encode("utf-8"),
@@ -134,6 +137,8 @@ def test_office_site_serves_chat_panel(monkeypatch, tmp_path):
         assert assigned["ok"] is True
         assert not assigned["office"]["idle"]
         assert "Keep LOOP moving" in assigned["office"]["assignments"]["ada"]
+        assert assigned["office"]["briefing"]["seat"] == "everyone"
+        assert all(d["status"] == "working" for d in assigned["office"]["desks"])
     finally:
         httpd.shutdown()
 

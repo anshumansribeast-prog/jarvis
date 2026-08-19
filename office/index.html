@@ -74,7 +74,16 @@
     .loop { border: 1px dashed #3d6b8a; padding: 8px; font-size: .85rem; background: #12202a; }
     #others { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
     .desk { border: 1px solid var(--line); background: #111a22; padding: 8px; min-height: 90px; font-size: .8rem; }
+    .desk.working { border-color: #3d6b8a; box-shadow: inset 0 0 0 1px #2a4a66; }
     .desk .name { font-weight: 700; }
+    .desk .slice { color: var(--amber); font-size: .72rem; margin-top: 4px; letter-spacing: .04em; }
+    .desk .task { margin-top: 6px; white-space: pre-wrap; color: var(--paper); }
+    .briefing {
+      border: 1px solid #3d6b8a; background: linear-gradient(120deg, #12202a, #0c141c);
+      padding: 12px 12px 10px; margin-bottom: 12px;
+    }
+    .briefing h3 { margin: 0 0 6px; font-size: .95rem; }
+    .briefing .meta { color: var(--muted); font-size: .78rem; margin-bottom: 8px; }
     .architect { background: #18222c; border: 2px solid var(--amber); padding: 10px; margin: 10px 0; display: grid; grid-template-columns: 72px 1fr; gap: 8px; }
     .stamp { border: 1px solid var(--amber); text-align: center; font-size: .65rem; padding: 6px; text-transform: uppercase; color: var(--amber); }
     #oc-log { height: 240px; overflow: auto; background: #07141c; padding: 10px; border: 1px solid #3d6b8a; font-family: Consolas, monospace; font-size: .85rem; }
@@ -117,9 +126,9 @@
       </div>
       <form class="assignbar" id="assign-form">
         <div>
-          <label for="seat">Assign a task</label>
+          <label for="seat">Assign like a real office</label>
           <select id="seat">
-            <option value="everyone" selected>Everyone (no idle desks)</option>
+            <option value="everyone" selected>Everyone (whole floor)</option>
             <option value="opencode">OpenCode</option>
             <option value="cursor">Cursor</option>
             <option value="aider">Aider</option>
@@ -130,10 +139,10 @@
           </select>
         </div>
         <div>
-          <label for="task">Task</label>
-          <input id="task" required placeholder="What should the whole floor do now?">
+          <label for="task">Floor goal</label>
+          <input id="task" required placeholder="e.g. Build the demo-store site — every desk gets a slice">
         </div>
-        <button class="primary" type="submit">Assign</button>
+        <button class="primary" type="submit">Assign to whole office</button>
       </form>
       <p class="err" id="assign-err"></p>
       <div id="view"></div>
@@ -183,17 +192,26 @@
     }
     function deskCard(d, architect) {
       const extra = architect ? `<div class="stamp">ARCH<br><b>OC</b></div>` : "";
-      const body = `<div><div class="name">${esc(d.name)}</div><div>${esc(d.role)}</div><div>${esc(d.task)}</div></div>`;
-      return `<article class="${architect ? "architect" : "desk"}">${architect ? extra + body : body}</article>`;
+      const working = String(d.status || "").toLowerCase().includes("work");
+      const body = `<div>
+        <div class="name">${esc(d.name)} ${working ? statusDot("work") : statusDot(d.status)}</div>
+        <div>${esc(d.role)}</div>
+        <div class="slice">YOU: ${esc(d.slice || "")}</div>
+        <div class="task">${esc(d.task)}</div>
+      </div>`;
+      return `<article class="${architect ? "architect" : "desk"}${working ? " working" : ""}">${architect ? extra + body : body}</article>`;
     }
     function paintLive() {
       const agents = state.agents || [];
       const tasks = (state.tasks || []).slice(-6).reverse();
       const sites = office.sites || [];
+      const brief = office.briefing || {};
       document.getElementById("live").innerHTML =
         `<h2>Live command center</h2>
          <div class="row"><span>Commander</span><span>${statusDot("Online")}Online</span></div>
          <div class="row"><span>OpenCode</span><span>${statusDot("work")}Architect</span></div>
+         <h2>Floor goal</h2>
+         <div class="row"><span>${esc(brief.goal || "—")}</span><span>${esc(brief.seat || "")}</span></div>
          <h2>Floor desks</h2>` +
         (office.desks || []).map(d => `<div class="row"><span>${esc(d.name)}</span><span>${statusDot(d.status)}${esc(d.status || "idle")}</span></div>`).join("") +
          `<h2>Storage</h2>
@@ -246,7 +264,7 @@
       if (!seat) return;
       const desks = office.desks || [];
       const cur = seat.value || "everyone";
-      const opts = [{id:"everyone", name:"Everyone (no idle desks)"}].concat(
+      const opts = [{id:"everyone", name:"Everyone (whole floor)"}].concat(
         desks.length ? desks : [
           {id:"opencode",name:"OpenCode"},{id:"cursor",name:"Cursor"},{id:"aider",name:"Aider"},
           {id:"continue",name:"Continue"},{id:"cline",name:"Cline"},{id:"ada",name:"Ada"},{id:"beast",name:"Beast"}
@@ -258,9 +276,18 @@
     function renderFloor() {
       const desks = office.desks || [];
       const arch = desks.find(d => d.id === "opencode");
+      const brief = office.briefing || {};
+      const briefingHtml = brief.goal ? `
+        <div class="briefing">
+          <h3>Floor briefing</h3>
+          <div class="meta">${esc(brief.at || "")} · assigned to <b>${esc(brief.seat || "everyone")}</b> · ${esc((brief.targets || []).length || desks.length)} desks</div>
+          <div><b>Goal:</b> ${esc(brief.goal)}</div>
+          <p class="hint" style="padding:8px 0 0">Every desk has a slice. Commander agents run the same goal into Storage.</p>
+        </div>` : `<div class="briefing"><h3>Floor ready</h3><p class="meta">Use <b>Assign to whole office</b> so nobody sits idle.</p></div>`;
       document.getElementById("view").innerHTML = `
+        ${briefingHtml}
         <p class="loop" id="loop">${esc(office.loop || "LOOP: OpenCode, Cursor, Aider, Continue, Cline, Ada, Beast — all must sit here with a task.")}</p>
-        <p class="hint" id="when">${esc(office.updated || "")}</p>
+        <p class="hint" id="when">${esc(office.updated || "")} · idle desks: ${esc((office.idle || []).join(", ") || "none")}</p>
         <h2>Architect’s table</h2>
         <div id="arch-desk">${arch ? deskCard(arch, true) : ""}</div>
         <h2>Every loop member</h2>
@@ -399,16 +426,25 @@
     });
     document.getElementById("assign-form").addEventListener("submit", async (ev) => {
       ev.preventDefault();
-      document.getElementById("assign-err").textContent = "Assigning…";
+      const seat = document.getElementById("seat").value;
+      const task = document.getElementById("task").value.trim();
+      if (!task) return;
+      document.getElementById("assign-err").textContent =
+        seat === "everyone" ? "Briefing the whole office…" : "Assigning desk…";
       try {
-        const data = await post("/api/assign", {
-          seat: document.getElementById("seat").value,
-          task: document.getElementById("task").value.trim()
-        });
+        const data = await post("/api/assign", { seat, task });
         if (data.office) office = data.office;
+        if (data.command) state = { ...state, ...data.command };
+        if (data.storage && data.storage.path) state.storage = data.storage;
         document.getElementById("task").value = "";
+        const n = (office.desks || []).length;
+        const created = (data.created || []).length;
         document.getElementById("assign-err").textContent = "";
+        document.getElementById("err").textContent =
+          `Office briefed: ${n} desks working` + (created ? ` · ${created} Commander tasks queued` : "");
         view = "floor";
+        paintView();
+        await loadCommand();
         paintView();
       } catch (e) {
         document.getElementById("assign-err").textContent = String(e);
