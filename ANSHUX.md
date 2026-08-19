@@ -1,8 +1,8 @@
 # ANSHUX
 
-Team file: **`anshux/TEAM.md`**.
+Team: **`anshux/TEAM.md`**. Office: **`python team.py office`**.
 
-**MAIN:** OpenCode (`python team.py opencode`). **CHECK:** Cursor. **Hub:** open `anshux.code-workspace`, then `python team.py` for the command menu.
+**INSPECT:** OpenCode (Semicolon + Cosmos, live and PRs). **IMPLEMENT:** Aider. **CHECK:** Cursor.
 
 Codex is off the team.
 

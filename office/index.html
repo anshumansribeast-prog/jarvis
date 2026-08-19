@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ANSHUX office</title>
+  <style>
+    :root { --ink:#1a1714; --paper:#e8dfd0; --wood:#6b4f32; --desk:#c4a574; --lamp:#f4d27a; --ok:#2f7d4a; --bad:#b33; --idle:#888; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: Georgia, "Times New Roman", serif; background:#3d4a42; color:var(--ink); }
+    header { background:#2a322e; color:#f3ead8; padding:12px 20px; display:flex; justify-content:space-between; align-items:baseline; gap:12px; flex-wrap:wrap; }
+    header h1 { margin:0; font-size:1.35rem; letter-spacing:.04em; }
+    header p { margin:0; opacity:.85; font-size:.9rem; }
+    .floor { padding:20px; display:grid; grid-template-columns: 1fr 280px; gap:16px; }
+    @media (max-width: 900px) { .floor { grid-template-columns: 1fr; } }
+    .room { background: repeating-linear-gradient(90deg,#c9b89a 0 48px,#c3b394 48px 96px); border:8px solid var(--wood); min-height:420px; padding:18px; }
+    .room h2 { margin:0 0 12px; font-size:1rem; color:#4a3724; }
+    .desks { display:grid; grid-template-columns: repeat(auto-fill, minmax(180px,1fr)); gap:12px; }
+    .desk { background:var(--desk); border:2px solid #8a6a3e; border-radius:4px 4px 10px 10px; padding:10px 12px; box-shadow: 0 6px 0 #5c4328; position:relative; min-height:120px; }
+    .desk::before { content:""; position:absolute; top:8px; right:10px; width:10px; height:10px; border-radius:50%; background:var(--lamp); box-shadow:0 0 8px var(--lamp); }
+    .desk .name { font-weight:700; }
+    .desk .role { font-size:.8rem; color:#4a3724; margin:.15rem 0 .4rem; }
+    .desk .task { font-size:.78rem; line-height:1.3; }
+    .desk .badge { display:inline-block; font-size:.7rem; letter-spacing:.04em; padding:2px 6px; border-radius:3px; background:#eee; }
+    .desk.on .badge { background:#cfe9d4; color:var(--ok); }
+    .desk.off .badge { background:#eadada; color:var(--bad); }
+    .desk.idle .badge { background:#e6e6e6; color:var(--idle); }
+    .wall { display:flex; flex-direction:column; gap:12px; }
+    .monitor { background:#111; color:#c8f7c5; font-family: ui-monospace, Consolas, monospace; font-size:.78rem; padding:12px; border:6px solid #222; min-height:140px; }
+    .monitor h3 { margin:0 0 8px; color:#fff; font-family: Georgia, serif; font-size:.9rem; }
+    .monitor a { color:#9cf; }
+    .ok { color:#7dffa4; } .bad { color:#ff8a8a; }
+    footer { padding:8px 20px 16px; color:#d8d0c4; font-size:.8rem; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>ANSHUX office</h1>
+    <p id="when">Loading floor…</p>
+  </header>
+  <div class="floor">
+    <section class="room">
+      <h2>Floor — who is at which desk</h2>
+      <div class="desks" id="desks"></div>
+    </section>
+    <aside class="wall">
+      <div class="monitor" id="sites"></div>
+      <div class="monitor" id="prs"></div>
+    </aside>
+  </div>
+  <footer>Open with <code>python team.py office</code>. OpenCode inspects both sites and both PRs. Refresh every 8s.</footer>
+  <script>
+    const fallback = {
+      updated: "(no state.json yet — run python team.py office)",
+      desks: [
+        { id:"opencode", name:"OpenCode", role:"Site inspector (in charge)", task:"Inspect Semicolon + Cosmos live and PRs", status:"idle" },
+        { id:"cursor", name:"Cursor", role:"Office check", task:"Verify inspector + pytest", status:"on" },
+        { id:"aider", name:"Aider", role:"Implementer", task:"Restore Ada API on PR #8", status:"idle" },
+        { id:"continue", name:"Continue", role:"Editor chat", task:"anshux.code-workspace", status:"idle" },
+        { id:"ada", name:"Ada", role:"Semicolon tutor", task:"Chat on ada.html", status:"idle" },
+        { id:"beast", name:"Beast", role:"Cosmos tutor", task:"Astronomy on cosmos.punah.pro", status:"idle" }
+      ],
+      sites: [],
+      prs: []
+    };
+    function paint(data) {
+      document.getElementById("when").textContent = data.updated || "";
+      const desks = document.getElementById("desks");
+      desks.innerHTML = (data.desks || []).map(d => `
+        <article class="desk ${d.status||"idle"}">
+          <span class="badge">${(d.status||"idle").toUpperCase()}</span>
+          <div class="name">${d.name}</div>
+          <div class="role">${d.role}</div>
+          <div class="task">${d.task}</div>
+        </article>`).join("");
+      const sites = document.getElementById("sites");
+      sites.innerHTML = "<h3>Wall — live sites</h3>" + (data.sites||[]).map(s =>
+        `<div><span class="${String(s.code)==="200"?"ok":"bad"}">${s.code}</span> ${s.name}<br><a href="${s.url}">${s.url}</a></div>`
+      ).join("") || "<div>No pings yet</div>";
+      const prs = document.getElementById("prs");
+      prs.innerHTML = "<h3>Wall — PRs (OpenCode inspects)</h3>" + (data.prs||[]).map(p =>
+        `<div>#${p.number} ${p.repo}<br>${p.title}<br><a href="${p.url}">${p.url}</a> (${p.state})</div>`
+      ).join("") || "<div>No PR list (gh missing or private)</div>";
+    }
+    async function load() {
+      try {
+        const r = await fetch("state.json?t=" + Date.now());
+        if (!r.ok) throw new Error("no json");
+        paint(await r.json());
+      } catch {
+        paint(fallback);
+      }
+    }
+    load();
+    setInterval(load, 8000);
+  </script>
+</body>
+</html>

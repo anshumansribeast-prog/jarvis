@@ -1,5 +1,7 @@
 """ANSHUX command hub."""
 
+import json
+
 import team
 
 
@@ -27,6 +29,24 @@ def test_status_runs(capsys):
     assert "ANSHUX board" in out
     assert "OpenCode" in out
     assert "Ada" in out
+
+
+def test_office_command():
+    assert team.resolve_command("office") == "office"
+    assert team.resolve_command("see the team") == "office"
+
+
+def test_office_snapshot(monkeypatch, tmp_path):
+    monkeypatch.setattr(team, "ROOT", tmp_path)
+    monkeypatch.setattr(team, "http_status", lambda url, timeout=4.0: "200")
+    monkeypatch.setattr(team, "_gh_prs", lambda repo: [])
+    monkeypatch.setattr(team, "which", lambda cmd: None)
+    monkeypatch.setattr(team, "tcp_open", lambda *a, **k: False)
+    path = team.write_office_state()
+    data = json.loads(path.read_text(encoding="utf-8"))
+    assert data["inspector"] == "OpenCode"
+    assert any(d["name"] == "OpenCode" for d in data["desks"])
+    assert data["sites"]
 
 
 def test_find_project_semicolon(tmp_path, monkeypatch):

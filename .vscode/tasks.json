@@ -26,7 +26,7 @@
       "problemMatcher": []
     },
     {
-      "label": "ANSHUX: OpenCode (MAIN)",
+      "label": "ANSHUX: OpenCode (inspect sites)",
       "type": "shell",
       "command": "python3",
       "windows": { "command": "python" },
@@ -67,6 +67,15 @@
       "command": "python3",
       "windows": { "command": "python" },
       "args": ["team.py", "pytest"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": []
+    },
+    {
+      "label": "ANSHUX: office floor",
+      "type": "shell",
+      "command": "python3",
+      "windows": { "command": "python" },
+      "args": ["team.py", "office"],
       "options": { "cwd": "${workspaceFolder}" },
       "problemMatcher": []
     },

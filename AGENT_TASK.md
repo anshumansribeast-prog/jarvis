@@ -3,21 +3,24 @@
 PROJECT: ANSHUX
 STATUS: LOOP
 
-MAIN: OpenCode (terminal)
-CHECK: Cursor
-FREE TEAM: Aider, Cline, Continue (Ollama)
-BRAINS: Ada, Beast
+Office floor (see the team): **`python team.py office`**
+Roles: **`anshux/LOOP.md`**
 
-Work area: open `anshux.code-workspace`. Commands: `python team.py`.
+INSPECT (in charge of both sites + PRs): **OpenCode**  
+IMPLEMENT: **Aider**  
+CHECK office: **Cursor**  
+EDITOR: Continue  
+BRAINS: Ada, Beast  
+OUT: Codex, Claude Code
 
-## OpenCode now
+## OpenCode now (inspector — do not idle)
 
-PR https://github.com/anshumansribeast-prog/semicolon/pull/8 removed Generator (good) but also Ada API, Concepts, and `ada.jpg` (bad).
+Inspect Semicolon **and** Cosmos, live **and** PRs. Paste `anshux/OPENCODE_TASK.md`. Ollama only.
 
-On that PR branch: restore `js/ada-api.js`, `/api/ada`, Concepts, Ada photo. Keep Generator deleted. Do not rebuild Generator.
+## Aider now (implement — do not idle)
 
-Paste: `anshux/OPENCODE_TASK.md`
+Restore Ada API on Semicolon PR #8. Paste `anshux/AIDER_TASK.md`.
 
-## Cursor after that
+## Cursor now
 
-Live check: generate.html 404; Ada still chats; Concepts still loads; phone composer usable.
+Refresh the office, pytest, confirm OpenCode inspected both sites.

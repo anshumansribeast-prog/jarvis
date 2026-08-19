@@ -33,3 +33,4 @@
 | 2026-08-19T06:18:00Z | Cursor | Checked team (Codex MAIN + Cursor + Aider/Cline). Flagged PR #8 over-delete | TEAM.md |
 | 2026-08-19T06:45:00Z | Cursor | Wired Codex/Aider/Cursor/Continue/Ada starts: `AGENTS.md`, `TEAM.md`, `.aider.conf.yml`, `.cursor/rules`, `anshux.code-workspace`, `.continue/`, `.team/` | LOOP |
 | 2026-08-19T08:12:00Z | Cursor | Default OpenCode to Ollama; disable Anthropic so Claude Sonnet does not spam invalid x-api-key | LOOP |
+| 2026-08-19T08:32:00Z | Cursor | OpenCode = site inspector (both sites + PRs). Office floor `python team.py office`. Aider implements. | LOOP |

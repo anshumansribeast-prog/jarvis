@@ -1,13 +1,14 @@
 # TEAM.md
 
-ANSHUX team. OpenCode auto-reads `AGENTS.md` from `C:\Users\Anshu\anshux` (plus `TEAM.md` via `opencode.json`).
+ANSHUX office. See the team: `python team.py office`.
 
-| Who | How you start | Role |
+| Who | Role | Start |
 | --- | --- | --- |
-| **OpenCode** (MAIN) | `python team.py opencode` | Implement |
-| **Aider** | `python team.py aider` | Free implementer (Ollama) |
-| **Cursor** (CHECK) | Open `anshux.code-workspace` | Tests, live site |
-| **Continue** | Same workspace | Completions / chat |
-| **Ada** | `python team.py ada` | Semicolon brain |
+| **OpenCode** | **Inspection in charge** — both sites + both PRs | `python team.py opencode` |
+| **Aider** | Implement Semicolon restores | `python team.py aider` |
+| **Cursor** | Check the office | this chat / `anshux.code-workspace` |
+| **Continue** | Editor chat | type `continue` |
+| **Ada** | Semicolon tutor | `python team.py ada` |
+| **Beast** | Cosmos tutor | live cosmos.punah.pro |
 
-Open the **work area** `anshux.code-workspace` (or Desktop **ANSHUX** after `make_desktop_icon.bat`). Sidebar: ANSHUX-board, team-cards, semicolon, cosmos. Commands: `python team.py` (no spaces) or Terminal → Run Task.
+Loop: `anshux/LOOP.md`. OpenCode inspects Semicolon PR #8 and Cosmos (PRs or live). Nobody idle until `AGENT_TASK.md` is `STOP`.

@@ -37,4 +37,4 @@ https://github.com/anshumansribeast-prog/semicolon/pull/8 — *Remove the Code G
 
 **OpenCode next:** keep Generator gone; **restore** `js/ada-api.js`, Ada `POST /api/ada`, Concepts page + nav, `img/ada.jpg`. Paste `anshux/OPENCODE_TASK.md`. Then Cursor re-checks the live site.
 
-Free agents do not own STATUS. OpenCode remains MAIN until `AGENT_TASK.md` is `STOP`.
+Loop board: **`anshux/LOOP.md`**. Every seat has a task. Cursor checks idle vs done. OpenCode stays MAIN until `AGENT_TASK.md` is `STOP`.

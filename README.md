@@ -1,13 +1,23 @@
 # ANSHUX board
 
-**Desktop icon (Windows):** double-click `make_desktop_icon.bat` once. That puts **ANSHUX** on the Desktop. Double-click it to open the work area.
+**Desktop icon (Windows):** double-click `make_desktop_icon.bat` once. That puts **ANSHUX** on the Desktop.
 
-In a terminal, type this **with no spaces in the filename**:
+See the team like an office:
 
 ```powershell
 cd C:\Users\Anshu\anshux
+python team.py office
+```
+
+Then the floor is at http://127.0.0.1:8765/ (desks + wall screens for both sites and PRs).
+
+In a terminal (no spaces in `team.py`):
+
+```powershell
 python team.py
 ```
+
+At `anshux>` type `office` or `opencode` (OpenCode **inspects** Semicolon + Cosmos).
 
 You get an `anshux>` prompt that stays open (like Codex / Claude Code). Type:
 

@@ -4,18 +4,24 @@
   python team.py                 work area prompt (stays open)
   python team.py check the sites
   python team.py sites
-  python team.py opencode
+  python team.py office          office floor (see the team)
+  python team.py opencode        site inspector (both sites + PRs)
   python team.py menu            numbered list (old)
 """
 
 from __future__ import annotations
 
+import datetime as _dt
+import json
+import os
 import shutil
 import socket
 import subprocess
 import sys
 import urllib.error
 import urllib.request
+import webbrowser
+from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
@@ -52,6 +58,10 @@ ALIASES: dict[str, tuple[str, ...]] = {
         "continue", "workspace", "open workspace", "open anshux",
         "anshux.code-workspace", "open_anshux.bat", "open anshux.bat",
         "code-workspace", "9",
+    ),
+    "office": (
+        "office", "floor", "see the team", "see team", "work office",
+        "open office", "10",
     ),
     "help": ("help", "/help", "?", "h"),
     "quit": ("q", "quit", "exit", "/q", "/quit"),
@@ -127,6 +137,8 @@ def resolve_command(text: str) -> str | None:
     for key, names in ALIASES.items():
         if n == key or n in names:
             return key
+    if "office" in n or "floor" in n or "desk" in n:
+        return "office"
     if "site" in n or "semicolon" in n or "cosmos" in n or "punah" in n:
         return "sites"
     if "system" in n or n == "board" or n == "status":
@@ -160,6 +172,134 @@ def cmd_sites() -> int:
     print("Live sites")
     for name, url in SITES:
         print(f"  {http_status(url):>4}  {name:28}  {url}")
+    return 0
+
+
+def _gh_prs(repo: str) -> list[dict]:
+    try:
+        raw = subprocess.check_output(
+            [
+                "gh", "pr", "list", "--repo", repo, "--state", "open", "--limit", "5",
+                "--json", "number,title,url,state",
+            ],
+            text=True,
+            timeout=20,
+            stderr=subprocess.DEVNULL,
+        )
+        rows = json.loads(raw)
+    except Exception as exc:  # noqa: BLE001
+        return [{
+            "number": "—",
+            "title": f"{repo}: {type(exc).__name__}",
+            "url": "",
+            "state": "n/a",
+            "repo": repo.split("/")[-1],
+        }]
+    for row in rows:
+        row["repo"] = repo.split("/")[-1]
+    return rows
+
+
+def collect_office_state() -> dict:
+    oc = bool(which("opencode"))
+    ollama = tcp_open("127.0.0.1", 11434)
+    ada = tcp_open("127.0.0.1", 8420)
+    sites = [{"name": n, "url": u, "code": http_status(u)} for n, u in SITES]
+    prs = _gh_prs("anshumansribeast-prog/semicolon")
+    cosmos_prs = _gh_prs("anshumansribeast-prog/cosmos")
+    if cosmos_prs and cosmos_prs[0].get("number") == "—":
+        prs.append({
+            "number": "live",
+            "repo": "cosmos",
+            "title": "No GitHub repo access — inspect live cosmos.punah.pro + /back",
+            "url": "https://cosmos.punah.pro/",
+            "state": "live-only",
+        })
+    else:
+        prs.extend(cosmos_prs)
+    desks = [
+        {
+            "id": "opencode",
+            "name": "OpenCode",
+            "role": "Site inspector (in charge)",
+            "task": "Inspect Semicolon + Cosmos live pages and PRs. Paste anshux/OPENCODE_TASK.md",
+            "status": "on" if oc else "idle",
+        },
+        {
+            "id": "cursor",
+            "name": "Cursor",
+            "role": "Office check",
+            "task": "Confirm inspector ran; pytest; update LOOP.md",
+            "status": "on",
+        },
+        {
+            "id": "aider",
+            "name": "Aider",
+            "role": "Implementer",
+            "task": "Restore Ada API + Concepts on Semicolon PR #8",
+            "status": "on" if which("aider") else "idle",
+        },
+        {
+            "id": "continue",
+            "name": "Continue",
+            "role": "Editor chat",
+            "task": "Open anshux.code-workspace",
+            "status": "idle",
+        },
+        {
+            "id": "ada",
+            "name": "Ada",
+            "role": "Semicolon tutor",
+            "task": "pages/ada.html — do not edit git",
+            "status": "on" if ada else "idle",
+        },
+        {
+            "id": "beast",
+            "name": "Beast",
+            "role": "Cosmos tutor",
+            "task": "cosmos.punah.pro — astronomy only",
+            "status": "idle",
+        },
+    ]
+    return {
+        "updated": _dt.datetime.now(tz=_dt.timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
+        "inspector": "OpenCode",
+        "ollama": ollama,
+        "desks": desks,
+        "sites": sites,
+        "prs": prs,
+    }
+
+
+def write_office_state() -> Path:
+    folder = ROOT / "office"
+    folder.mkdir(exist_ok=True)
+    path = folder / "state.json"
+    path.write_text(json.dumps(collect_office_state(), indent=2), encoding="utf-8")
+    return path
+
+
+def cmd_office() -> int:
+    path = write_office_state()
+    print("Office snapshot:", path)
+    print("OpenCode is inspection in charge of Semicolon + Cosmos (live + PRs).")
+    html = ROOT / "office" / "index.html"
+    if not sys.stdin.isatty() or os.environ.get("ANSHUX_OFFICE_NO_SERVE"):
+        print("View:", html)
+        return 0
+
+    class Handler(SimpleHTTPRequestHandler):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, directory=str(ROOT / "office"), **kwargs)
+
+    httpd = ThreadingHTTPServer(("127.0.0.1", 8765), Handler)
+    url = "http://127.0.0.1:8765/"
+    print("Office floor:", url)
+    webbrowser.open(url)
+    try:
+        httpd.serve_forever()
+    except KeyboardInterrupt:
+        print("office closed")
     return 0
 
 
@@ -264,7 +404,8 @@ def cmd_help() -> int:
     print("Work area prompt — type a sentence or a number.")
     print("  check the sites     ping Semicolon + Cosmos")
     print("  status              board")
-    print("  opencode            MAIN agent TUI (Codex-style)")
+    print("  office              see the team (office floor)")
+    print("  opencode            SITE INSPECTOR TUI (Semicolon + Cosmos PRs)")
     print("  aider / ada / jarvis / pytest / start-all")
     print("  continue            open anshux.code-workspace (Continue in the editor)")
     print("  q                   quit")
@@ -279,7 +420,8 @@ def cmd_quit() -> int:
 MENU = [
     ("status", "Show all systems (board)", cmd_status),
     ("sites", "Ping live Semicolon + Cosmos", cmd_sites),
-    ("opencode", "Start OpenCode (MAIN)", cmd_opencode),
+    ("office", "Open the office floor (see the team)", cmd_office),
+    ("opencode", "Start OpenCode (site inspector)", cmd_opencode),
     ("aider", "Start Aider", cmd_aider),
     ("ada", "Start Ada (Ollama tutor)", cmd_ada),
     ("jarvis", "Start Jarvis voice", cmd_jarvis),
@@ -309,11 +451,11 @@ def print_banner() -> None:
     ada = "ON" if tcp_open("127.0.0.1", 8420) else "off"
     print()
     print("=" * 64)
-    print("  ANSHUX work area          MAIN OpenCode     CHECK Cursor")
+    print("  ANSHUX work area     INSPECT OpenCode     CHECK Cursor")
     print("  Terminal UI like Codex / Claude Code. Type here; stay in this prompt.")
     print("=" * 64)
     print(f"  OpenCode {oc}   Ollama {ol}   Ada {ada}   {ROOT}")
-    print("  Try:  check the sites   |   status   |   opencode   |   continue")
+    print("  Try:  office   |   check the sites   |   opencode   |   continue")
     print("  Quit: q")
     print()
 

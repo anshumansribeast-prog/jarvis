@@ -1,6 +1,7 @@
 {
   "folders": [
     { "name": "ANSHUX-board", "path": "." },
+    { "name": "office", "path": "office" },
     { "name": "team-cards", "path": ".team" },
     { "name": "semicolon", "path": "../semicolon" },
     { "name": "cosmos", "path": "../cosmos" }

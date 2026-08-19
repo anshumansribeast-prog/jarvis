@@ -8,7 +8,7 @@ cd C:\Users\Anshu\anshux
 
 | Agent | Command |
 | --- | --- |
-| **OpenCode** | `python team.py opencode` or `opencode` — reads `AGENTS.md` + `TEAM.md` (`opencode.json`). |
+| **OpenCode** | `python team.py opencode` — **site inspector** (both sites + PRs). |
 | **Aider** | `python team.py aider` |
 | **Cursor** | Open `anshux.code-workspace` (rules in `.cursor/rules/*.mdc`). |
 | **Continue** | Same workspace — `.continue/rules/` + `AGENTS.md`. |

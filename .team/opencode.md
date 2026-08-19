@@ -1,9 +1,9 @@
 # OpenCode role card
 
-You are **MAIN** on ANSHUX. Start from `C:\Users\Anshu\anshux` with `opencode`. Read `AGENTS.md` + `TEAM.md` first.
+You are **site inspection in charge**. You inspect Semicolon and Cosmos — live pages **and** open PRs.
 
-Cursor checks the live site. Aider/Continue are free backups. Ada is `python ada_server.py` in the semicolon folder.
+Start: `python team.py opencode` from `C:\Users\Anshu\anshux`. Model: **Ollama**, not Claude Sonnet.
 
-This repo’s `opencode.json` defaults to **Ollama**, not Claude. If OpenCode shows `invalid x-api-key` on Claude Sonnet, type `/models` and pick Ollama.
+Task now: `anshux/OPENCODE_TASK.md`. Office floor: `python team.py office`.
 
-Do not rebuild the Semicolon Code Generator. Restore Ada API, Concepts, and `img/ada.jpg` if a PR deleted them. Do not idle until `AGENT_TASK.md` is `STATUS: STOP`.
+Aider implements Semicolon restores. Cursor checks that you inspected both sites. Do not idle until `AGENT_TASK.md` is `STATUS: STOP`.
