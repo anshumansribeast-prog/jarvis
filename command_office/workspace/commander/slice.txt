@@ -1,2 +1,0 @@
-COMMANDER executed this request:
-Commander does a slice of the work
