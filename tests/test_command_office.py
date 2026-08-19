@@ -131,9 +131,11 @@ def test_command_office_http(office_data, monkeypatch):
     try:
         home = urlreq.urlopen(f"http://127.0.0.1:{port}/", timeout=5).read().decode("utf-8")
         assert "OpenCode chat panel" in home
-        assert "/command/" in home
+        assert "COMMANDER" in home
+        assert "Assign a task" in home
         page = urlreq.urlopen(f"http://127.0.0.1:{port}/command/", timeout=5).read().decode("utf-8")
         assert "AI Command Office" in page
+        assert "OpenCode chat panel" in page
         assert "sk-" not in page
         assert "api_key" not in page.lower()
         req = urlreq.Request(

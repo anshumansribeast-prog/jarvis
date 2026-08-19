@@ -94,6 +94,8 @@ def test_office_site_serves_chat_panel(monkeypatch, tmp_path):
         home = urlreq.urlopen(f"http://127.0.0.1:{port}/", timeout=5).read().decode("utf-8")
         assert "OpenCode chat panel" in home
         assert "Assign a task" in home
+        assert "COMMANDER" in home
+        assert "Office floor" in home
         req = urlreq.Request(
             f"http://127.0.0.1:{port}/api/chat",
             data=json.dumps({"text": "hello architect"}).encode("utf-8"),

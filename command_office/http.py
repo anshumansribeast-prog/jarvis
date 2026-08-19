@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
-from command_office import MODEL, STATIC
+from command_office import MODEL, ROOT
 from command_office.orchestrator import (
     approve_task,
     cancel_task,
@@ -43,7 +43,8 @@ def handle_get(handler, path: str) -> bool:
     parsed = urlparse(handler.path)
     route = parsed.path
     if route in {"/command", "/command/", "/command/index.html"}:
-        _send_file(handler, STATIC / "index.html", "text/html; charset=utf-8")
+        page = ROOT / "office" / "index.html"
+        _send_file(handler, page, "text/html; charset=utf-8")
         return True
     if route == "/api/command":
         payload = snapshot()

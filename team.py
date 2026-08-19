@@ -478,10 +478,9 @@ def cmd_office() -> int:
     boot_command_office()
     url = f"http://127.0.0.1:{port}/"
     print()
-    print("OFFICE SITE (chat panel is on this page):")
+    print("ANSHUX COMMAND OFFICE (Commander + OpenCode + floor, one page):")
     print(" ", url)
-    print("AI COMMAND OFFICE (Commander + agents):")
-    print(" ", url + "command/")
+    print("Same page also at", url + "command/")
     print("These URLs work only on THIS computer, while this window stays open.")
     print("They will not open from another phone/laptop or from punah.pro.")
     print("Do not double-click index.html. That hides the chat API.")
