@@ -70,10 +70,46 @@ def snapshot() -> dict:
                     })
                     have.add(spec["id"])
                     changed = True
+        # Older runs flipped every agent to Idle after work. If they have history,
+        # surface Ready/Failed from the last task so the live panel is honest.
+        tasks_preview = _load("tasks.json", [])
+        by_id = {int(t["id"]): t for t in tasks_preview if str(t.get("id", "")).isdigit()}
+        for a in agents:
+            if a.get("status") not in {None, "Idle"}:
+                continue
+            hist = a.get("history") or []
+            if not hist:
+                continue
+            last_id = hist[-1]
+            try:
+                last_id = int(last_id)
+            except (TypeError, ValueError):
+                continue
+            row = by_id.get(last_id)
+            if not row:
+                a["status"] = "Ready"
+                a["last_task"] = last_id
+                changed = True
+                continue
+            st = row.get("status")
+            if st == "COMPLETED":
+                a["status"] = "Ready"
+                a["last_task"] = last_id
+                a["last_result"] = "COMPLETED"
+                changed = True
+            elif st == "FAILED":
+                a["status"] = "Failed"
+                a["last_task"] = last_id
+                a["last_result"] = "FAILED"
+                changed = True
+            elif st in {"QUEUED", "WAITING", "ASSIGNED", "NEEDS_REVIEW", "RUNNING"}:
+                a["status"] = "Working" if st == "RUNNING" else "Assigned"
+                a["current_task"] = last_id
+                changed = True
         if changed:
             _save("agents.json", agents)
         convos = _load("conversations.json", [])
-        tasks = _load("tasks.json", [])
+        tasks = tasks_preview
         activity = _load("activity.json", [])
         settings = _load("settings.json", {"model": MODEL, "project": "anshux"})
         settings["model"] = MODEL

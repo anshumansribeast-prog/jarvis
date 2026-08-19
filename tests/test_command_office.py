@@ -67,6 +67,28 @@ def test_commander_chat_writes_workspace(office_data):
     assert cmd["status"] == "COMPLETED"
     assert result.get("office")
     assert not result["office"].get("idle")
+    # Finished agents must not look unused ("Idle") — Ready/Failed + last_task.
+    fe_agent = next(a for a in state["agents"] if a["id"] == "frontend")
+    assert fe_agent["status"] in {"Ready", "Failed"}
+    assert fe_agent.get("last_task") == frontend["id"]
+    assert fe_agent.get("last_result") in {"COMPLETED", "FAILED"}
+
+
+def test_snapshot_upgrades_legacy_idle_status(office_data):
+    """Agents that already finished should not stay Idle forever in the live panel."""
+    result = commander_chat("Build a website.")
+    agents = store._load("agents.json", [])
+    for a in agents:
+        a["status"] = "Idle"
+        a["current_task"] = None
+        a.pop("last_task", None)
+        a.pop("last_result", None)
+    store.save_agents(agents)
+    snap = store.snapshot()
+    worked = [a for a in snap["agents"] if a.get("history")]
+    assert worked
+    assert all(a["status"] in {"Ready", "Failed", "Assigned", "Working"} for a in worked)
+    assert result["created"]
 
 
 def test_new_conversation_and_progress(office_data):

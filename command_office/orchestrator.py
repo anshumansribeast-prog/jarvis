@@ -84,6 +84,11 @@ def create_tasks_from_plan(plan_doc: dict) -> list[dict]:
             for a in agents:
                 if a["id"] == spec["agent"]:
                     a["history"] = (a.get("history") or [])[-20:] + [tid]
+                    # Queued work is not Idle — show Assigned until the worker picks it up.
+                    if status in {"QUEUED", "WAITING", "NEEDS_REVIEW", "ASSIGNED"}:
+                        if a.get("status") in {None, "Idle", "Ready", "Failed", "Assigned"}:
+                            a["status"] = "Assigned"
+                            a["current_task"] = tid
             log_activity(f"Task #{tid} {status} → {spec['agent']}: {spec['title']}")
         _save("tasks.json", tasks)
         save_agents(agents)
@@ -145,8 +150,11 @@ def process_due_tasks(limit: int = 8) -> list[dict]:
                     log_activity(f"Task #{t['id']} {t['status']}")
             for a in agents:
                 if a["id"] == task_copy["agent"]:
-                    a["status"] = "Idle"
+                    # Idle meant "finished" and looked like nobody ran. Keep Ready/Failed.
+                    a["status"] = "Ready" if ok else "Failed"
                     a["current_task"] = None
+                    a["last_task"] = task_copy["id"]
+                    a["last_result"] = "COMPLETED" if ok else "FAILED"
                     a.setdefault("logs", []).append({"t": _stamp(), "text": f"end #{task_copy['id']} {ok}"})
                     a["logs"] = a["logs"][-40:]
             _save("tasks.json", tasks)
@@ -168,7 +176,12 @@ def commander_chat(text: str, conversation_id: str | None = None) -> dict:
         agents = snapshot()["agents"]
         lines = ["## Everyone's progress"]
         for a in agents:
-            lines.append(f"- {a['name']}: {a.get('status') or 'Idle'} task={a.get('current_task')}")
+            last = a.get("last_task")
+            last_bit = f" last=#{last} {a.get('last_result')}" if last else ""
+            lines.append(
+                f"- {a['name']}: {a.get('status') or 'Idle'} "
+                f"task={a.get('current_task')}{last_bit}"
+            )
         for t in tasks[-12:]:
             lines.append(f"- #{t['id']} {t['title']} — {t['status']} ({t['agent']})")
         msg = {

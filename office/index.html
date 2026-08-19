@@ -38,7 +38,7 @@
     .main { display: flex; flex-direction: column; min-height: 0; }
     .bar { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--line); gap: 8px; }
     .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; background: var(--ok); }
-    .dot.work { background: var(--work); } .dot.idle { background: var(--idle); } .dot.bad { background: var(--bad); }
+    .dot.work { background: var(--work); } .dot.idle { background: var(--idle); } .dot.bad { background: var(--bad); } .dot.ok { background: var(--ok); }
     #view { flex: 1; overflow: auto; padding: 16px; }
     #cmd-log { display: flex; flex-direction: column; gap: 12px; }
     .msg { max-width: 760px; padding: 12px 14px; border: 1px solid var(--line); background: #0c1218; }
@@ -167,8 +167,16 @@
     }
     function statusDot(st) {
       const s = String(st || "Idle").toLowerCase();
-      const cls = s.includes("work") || s.includes("test") || s === "running" ? "work" : (s.includes("fail") ? "bad" : "idle");
+      const cls = s.includes("work") || s.includes("assign") || s === "running" ? "work"
+        : (s.includes("fail") ? "bad" : (s.includes("ready") || s.includes("online") ? "ok" : "idle"));
       return `<span class="dot ${cls}"></span>`;
+    }
+    function agentStatusLine(a) {
+      const st = a.status || "Idle";
+      let detail = "";
+      if (a.current_task) detail = ` · #${a.current_task}`;
+      else if (a.last_task) detail = ` · last #${a.last_task} ${a.last_result || ""}`.trimEnd();
+      return `${statusDot(st)}${esc(st)}${esc(detail)}`;
     }
     function convo() {
       return (state.conversations || []).find(c => c.id === cid) || { messages: [] };
@@ -189,7 +197,7 @@
          <h2>Floor desks</h2>` +
         (office.desks || []).map(d => `<div class="row"><span>${esc(d.name)}</span><span>${statusDot(d.status)}${esc(d.status || "idle")}</span></div>`).join("") +
         `<h2>Agents</h2>` +
-        agents.map(a => `<div class="row"><span>${esc(a.name)}</span><span>${statusDot(a.status)}${esc(a.status || "Idle")}</span></div>`).join("") +
+        agents.map(a => `<div class="row"><span>${esc(a.name)}</span><span>${agentStatusLine(a)}</span></div>`).join("") +
         `<h2>Tasks</h2>` +
         (tasks.length ? tasks.map(t => `<div class="row"><span>#${esc(t.id)} ${esc(t.title)}</span><span>${esc(t.status)}</span></div>`).join("") : `<p class="hint">No Commander tasks yet.</p>`) +
         `<h2>Sites</h2>` +
@@ -266,7 +274,7 @@
     }
     function renderAgents() {
       document.getElementById("view").innerHTML = `<table><tr><th>Agent</th><th>Role</th><th>Status</th><th>Task</th><th>Logs</th></tr>` +
-        (state.agents || []).map(a => `<tr><td>${esc(a.name)}</td><td>${esc(a.role)}<br><small>${esc((a.capabilities||[]).join(", "))}</small></td><td>${esc(a.status)}</td><td>${esc(a.current_task || "—")}</td><td><pre>${esc(JSON.stringify((a.logs||[]).slice(-4), null, 0))}</pre></td></tr>`).join("") + `</table>`;
+        (state.agents || []).map(a => `<tr><td>${esc(a.name)}</td><td>${esc(a.role)}<br><small>${esc((a.capabilities||[]).join(", "))}</small></td><td>${esc(a.status)}${a.last_task ? ` · last #${esc(a.last_task)} ${esc(a.last_result||"")}` : ""}</td><td>${esc(a.current_task || "—")}</td><td><pre>${esc(JSON.stringify((a.logs||[]).slice(-4), null, 0))}</pre></td></tr>`).join("") + `</table>`;
     }
     function renderTasks() {
       const rows = (state.tasks || []).slice().reverse();
