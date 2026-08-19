@@ -8,13 +8,7 @@ KNOWLEDGE BRAINS: Ada, Beast
 
 **Until `STATUS: STOP`, keep working.**
 
-## Codex — do this now (Cloud)
-
-Go to https://chatgpt.com/codex/cloud  
-Repo: **anshumansribeast-prog/semicolon**  
-Paste: `anshux/CODEX_CLOUD_TASK.md`
-
-Make Semicolon simple (no Generator). Fix mobile Ada. Do not rebuild the generator.
+Codex Cloud free limit is **hit**. Free replacements: `anshux/FREE_CODING_AGENTS.md` (Aider or Cline + your existing **Ollama**).
 
 ## Cursor — after Codex deploys
 

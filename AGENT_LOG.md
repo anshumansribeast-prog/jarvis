@@ -29,4 +29,4 @@
 | 2026-08-18T11:43:00Z | Cursor | Removed Claude Code; mains = Cursor + Codex; knowledge = Claude, ChatGPT, Gemini | Protocol updated |
 | 2026-08-18T11:44:00Z | Cursor | Defensive Semicolon/Cosmos review written to `anshux/SITE_SECURITY_REPORT.md` | SUB-2 in progress / report exists |
 | 2026-08-18T12:00:00Z | Cursor | Live check: generator 200, practice still has Generate, Ada mobile too small | SITE_CHECK.md |
-| 2026-08-18T12:29:00Z | Cursor | Codex Cloud task for chatgpt.com/codex/cloud on semicolon repo | CODEX_CLOUD_TASK.md |
+| 2026-08-19T05:24:00Z | Cursor | Codex free limit hit; researched free agents; Aider/Cline+Ollama recommended | FREE_CODING_AGENTS.md |

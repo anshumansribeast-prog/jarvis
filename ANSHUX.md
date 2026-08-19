@@ -4,7 +4,7 @@ Project: **ANSHUX**. Product: Jarvis. Semicolon / Cosmos are sister sites.
 
 ## Mains (loop until STOP)
 
-**Cursor** and **Codex** are both main. While `AGENT_TASK.md` is not `STATUS: STOP`, they keep working: next open subtask, site check, tests, log, repeat. Only **Anshuman** setting `STATUS: STOP` ends the loop.
+**Cursor** is a main. **Codex Cloud** is paused (free limit). Use **Aider** or **Cline + Ollama** (`anshux/FREE_CODING_AGENTS.md`) until Codex quota resets or you pay.
 
 ## Knowledge sub-agencies (brains)
 
