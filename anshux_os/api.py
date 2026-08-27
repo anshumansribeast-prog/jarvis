@@ -44,6 +44,15 @@ def create_app(kernel: AnshuXKernel | None = None) -> Flask:
         core.memory.remember(key.strip(), value)
         return jsonify({"ok": True})
 
+    @app.get("/api/os/actions")
+    def pending_actions():
+        return jsonify({
+            "actions": [
+                {"action_id": key, "name": value.name, "risk": value.risk.value, "description": value.description, "args": value.args}
+                for key, value in core.permissions.pending().items()
+            ]
+        })
+
     @app.post("/api/os/actions")
     def request_action():
         body = request.get_json(silent=True) or {}
@@ -58,5 +67,13 @@ def create_app(kernel: AnshuXKernel | None = None) -> Flask:
             str(body.get("description", "")),
             body.get("args") if isinstance(body.get("args"), dict) else {},
         )), 202
+
+    @app.post("/api/os/actions/<action_id>/approve")
+    def approve_action(action_id: str):
+        try:
+            result = core.approve_action(action_id)
+        except (ValueError, PermissionError) as exc:
+            return jsonify({"error": str(exc)}), 400
+        return jsonify({"ok": True, "result": result})
 
     return app
