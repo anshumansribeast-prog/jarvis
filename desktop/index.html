@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AnshuX OS</title>
+  <style>
+    :root{font-family:Inter,system-ui,sans-serif;color:#eef2ff;background:#080b12}
+    *{box-sizing:border-box} body{margin:0;min-height:100vh;background:radial-gradient(circle at 70% 15%,#17213b 0,#080b12 45%);overflow:hidden}
+    .top{height:62px;border-bottom:1px solid #20283a;display:flex;align-items:center;padding:0 22px;gap:14px;background:#0a0e17cc;backdrop-filter:blur(12px)}
+    .logo{font-weight:800;letter-spacing:.08em}.dot{width:9px;height:9px;border-radius:50%;background:#62e6a5;box-shadow:0 0 14px #62e6a5}
+    .layout{display:grid;grid-template-columns:250px 1fr 330px;height:calc(100vh - 62px)}
+    aside,.right{border-right:1px solid #20283a;background:#0b101a}.right{border-left:1px solid #20283a;border-right:0;padding:18px}
+    .nav{padding:18px}.nav button{display:block;width:100%;text-align:left;padding:12px;border:0;border-radius:10px;background:transparent;color:#aeb8cc;margin-bottom:6px;cursor:pointer}.nav button:hover,.nav button.active{background:#151d2c;color:#fff}
+    main{padding:28px;overflow:auto}.hero h1{font-size:42px;margin:0 0 8px}.muted{color:#8f9bb0}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:24px}.card{padding:18px;border:1px solid #20283a;border-radius:16px;background:#0e1420}.value{font-size:26px;font-weight:800;margin-top:8px}
+    .chat{position:fixed;left:276px;right:356px;bottom:24px;display:flex;gap:10px}.chat input{flex:1;padding:16px 18px;border-radius:14px;border:1px solid #2a3347;background:#0b101a;color:#fff;outline:none}.chat button{border:0;border-radius:14px;padding:0 20px;background:#eef2ff;color:#0b101a;font-weight:700}
+    .pill{display:inline-block;padding:6px 10px;border:1px solid #2a3347;border-radius:999px;font-size:12px;color:#b8c3d9}.agent{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid #20283a}.agent:last-child{border-bottom:0}.ok{color:#62e6a5}
+    @media(max-width:1000px){.layout{grid-template-columns:1fr}.nav,.right{display:none}.chat{left:20px;right:20px}.grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <header class="top"><span class="dot"></span><span class="logo">ANSHUX OS</span><span class="muted">AI-FIRST CONTROL PLANE</span></header>
+  <div class="layout">
+    <aside><nav class="nav"><button class="active">⌂  Home</button><button>◈  Agents</button><button>▣  Projects</button><button>◫  Files</button><button>⌁  Memory</button><button>⚙  Settings</button></nav></aside>
+    <main>
+      <section class="hero"><span class="pill" id="version">BOOTING</span><h1>Good evening, AnshuX.</h1><p class="muted">One control layer for your AI agents, projects, files and computer.</p></section>
+      <section class="grid"><div class="card"><div class="muted">System</div><div class="value" id="system">Checking…</div></div><div class="card"><div class="muted">Agents</div><div class="value" id="agentCount">—</div></div><div class="card"><div class="muted">Pending actions</div><div class="value" id="actions">—</div></div></section>
+      <section class="card" style="margin-top:14px"><div class="muted">Mission console</div><p id="mission">AnshuX kernel is ready to receive a task.</p></section>
+    </main>
+    <aside class="right"><h3>Agent network</h3><div id="agents"></div><h3 style="margin-top:26px">Safety</h3><p class="muted">Read/write actions can be queued. Dangerous actions require explicit approval.</p></aside>
+  </div>
+  <div class="chat"><input id="task" placeholder="Tell AnshuX what you want to do…"/><button onclick="sendTask()">Send</button></div>
+  <script>
+    async function refresh(){
+      try{
+        const r=await fetch('/api/os/status'); const s=await r.json();
+        document.getElementById('version').textContent='ONLINE · '+s.version;
+        document.getElementById('system').textContent='ONLINE';
+        document.getElementById('agentCount').textContent=s.agents.length;
+        document.getElementById('actions').textContent=s.pending_actions;
+        document.getElementById('agents').innerHTML=s.agents.map(a=>`<div class="agent"><span>${a.name}</span><span class="ok">●</span></div>`).join('');
+      }catch(e){ document.getElementById('version').textContent='OFFLINE'; document.getElementById('system').textContent='OFFLINE'; }
+    }
+    async function sendTask(){
+      const input=document.getElementById('task'); const task=input.value.trim(); if(!task)return;
+      document.getElementById('mission').textContent='Queued: '+task;
+      await fetch('/api/os/actions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:'user_task',risk:'write',description:task})});
+      input.value=''; refresh();
+    }
+    refresh(); setInterval(refresh,5000);
+  </script>
+</body>
+</html>
