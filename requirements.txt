@@ -4,3 +4,4 @@ truststore
 numpy
 faster-whisper
 piper-tts
+flask
