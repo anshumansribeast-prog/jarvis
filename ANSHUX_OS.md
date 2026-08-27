@@ -1,26 +1,36 @@
-# AnshuX OS Foundation
+# AnshuX OS
 
-An AI-first desktop control plane built on the existing Jarvis repository.
+An AI-first local control plane that runs in your **web browser**. The backend stays on your own Windows laptop at `127.0.0.1:8765`.
 
-## What is in this first foundation
+## Browser-first design
 
-- **Kernel:** central runtime coordinating agents, memory and actions.
+There is **no native AnshuX desktop app required** for normal use. Start the local Python server and open the browser UI.
+
+- **Kernel:** coordinates agents, memory, permissions and computer actions.
 - **Agent registry:** AnshuX orchestrator plus Ada and Beast adapters.
 - **Persistent memory:** JSON-backed facts and bounded event history.
-- **Permission gate:** every requested operation is represented as an action; dangerous operations require an explicit approval call.
-- **Controller bridge:** uses the existing app/system controllers through a strict allowlist; arbitrary shell commands are not exposed to the AI layer.
+- **Permission gate:** dangerous operations require explicit approval.
+- **Controller bridge:** uses a strict allowlist rather than exposing arbitrary shell commands to the AI.
 - **Local API:** Flask server on `127.0.0.1:8765`.
-- **Desktop shell:** browser UI served from `/` with live kernel status and agent visibility.
+- **Browser desktop:** the AnshuX interface is served directly from `/`.
 
-## Run
+## First-time setup on Windows
+
+1. Open the `jarvis` folder.
+2. Double-click `setup_anshux_os.bat` once.
+3. Double-click `start_anshux_localhost.bat` whenever you want to use AnshuX OS.
+4. Your normal browser opens `http://127.0.0.1:8765/`.
+
+You can also start it from PowerShell inside the folder:
 
 ```powershell
-python -m pip install -r requirements.txt
-python os_server.py
+.\start_anshux_localhost.bat
 ```
 
-Open `http://127.0.0.1:8765/`.
+## Site development / localhost previews
 
-## Next layers
+AnshuX OS itself is served from localhost. Your individual web projects remain separate development servers (for example Vite, Next.js, or another local server) and can be launched from the project workspace. The next integration layer will add project discovery, start/stop controls and one-click localhost preview links inside the AnshuX browser UI.
 
-The foundation is deliberately separate from the existing voice/runtime code. The next stages are to connect voice input, the existing Jarvis conversation loop, real Ada/Beast endpoints, file/project workspace APIs, richer desktop windows, and a mobile companion without giving the model unrestricted operating-system access.
+## Important
+
+This is a browser-based local control plane, not a replacement kernel for Windows. It can orchestrate the existing Jarvis runtime and Windows controllers without replacing the operating system itself.
