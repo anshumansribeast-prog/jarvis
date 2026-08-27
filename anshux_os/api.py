@@ -1,16 +1,26 @@
-"""Local HTTP API for the AnshuX OS desktop shell."""
+"""Local HTTP API and desktop entry point for the AnshuX OS."""
 
 from __future__ import annotations
 
-from flask import Flask, jsonify, request
+from pathlib import Path
+
+from flask import Flask, jsonify, request, send_from_directory
 
 from .kernel import AnshuXKernel
 from .permissions import Risk
 
 
+ROOT = Path(__file__).resolve().parent.parent
+DESKTOP = ROOT / "desktop"
+
+
 def create_app(kernel: AnshuXKernel | None = None) -> Flask:
     app = Flask(__name__)
     core = kernel or AnshuXKernel()
+
+    @app.get("/")
+    def desktop():
+        return send_from_directory(DESKTOP, "index.html")
 
     @app.get("/api/os/status")
     def os_status():
