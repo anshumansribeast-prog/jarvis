@@ -11,6 +11,7 @@ from typing import Any
 from uuid import uuid4
 
 from .agents import Agent, AgentRegistry
+from .executor import ActionExecutor
 from .memory import MemoryStore
 from .permissions import Action, PermissionManager, Risk
 
@@ -19,6 +20,7 @@ class AnshuXKernel:
     def __init__(self, memory: MemoryStore | None = None) -> None:
         self.memory = memory or MemoryStore()
         self.permissions = PermissionManager()
+        self.executor = ActionExecutor()
         self.agents = AgentRegistry()
         self.started_at = datetime.now(timezone.utc).isoformat()
         self._register_builtin_agents()
@@ -50,3 +52,9 @@ class AnshuXKernel:
         self.permissions.request(action_id, action)
         self.memory.event("action_requested", {"id": action_id, "name": name, "risk": risk.value})
         return {"action_id": action_id, "name": name, "risk": risk.value, "description": description, "args": action.args}
+
+    def approve_action(self, action_id: str) -> Any:
+        action = self.permissions.approve(action_id)
+        result = self.executor.execute(action.name, action.args, approved=True)
+        self.memory.event("action_executed", {"id": action_id, "name": action.name, "risk": action.risk.value})
+        return result
