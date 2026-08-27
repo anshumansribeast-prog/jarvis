@@ -29,7 +29,7 @@ if errorlevel 1 (
   exit /b 1
 )
 
-python -m compileall -q anshux_os os_server.py app_controller.py system_controller.py
+python -m compileall -q anshux_os os_server.py desktop_app.py app_controller.py system_controller.py
 if errorlevel 1 (
   echo [AnshuX OS] Python compile check failed.
   pause
@@ -38,6 +38,7 @@ if errorlevel 1 (
 
 echo.
 echo [AnshuX OS] Setup complete.
-echo Run start_anshux_os.bat to launch the desktop.
+echo Run start_anshux_desktop.bat to launch the native Windows desktop.
+echo The OS backend stays local at http://127.0.0.1:8765/
 pause
 endlocal
