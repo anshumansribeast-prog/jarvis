@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AnshuX OS</title>
+  <style>
+    :root{font-family:Inter,system-ui,sans-serif;color:#eef2ff;background:#080b12}
+    *{box-sizing:border-box} body{margin:0;min-height:100vh;background:radial-gradient(circle at 70% 15%,#17213b 0,#080b12 45%);overflow:hidden}
+    .top{height:62px;border-bottom:1px solid #20283a;display:flex;align-items:center;padding:0 22px;gap:14px;background:#0a0e17cc;backdrop-filter:blur(12px)}
+    .logo{font-weight:800;letter-spacing:.08em}.dot{width:9px;height:9px;border-radius:50%;background:#62e6a5;box-shadow:0 0 14px #62e6a5}.muted{color:#8f9bb0}
+    .layout{display:grid;grid-template-columns:230px 1fr 310px;height:calc(100vh - 62px)}
+    aside,.right{border-right:1px solid #20283a;background:#0b101a}.right{border-left:1px solid #20283a;border-right:0;padding:18px;overflow:auto}
+    .nav{padding:18px}.nav button{display:block;width:100%;text-align:left;padding:12px;border:0;border-radius:10px;background:transparent;color:#aeb8cc;margin-bottom:6px;cursor:pointer}.nav button:hover,.nav button.active{background:#151d2c;color:#fff}
+    main{padding:28px;overflow:auto}.hero h1{font-size:42px;margin:10px 0 8px}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:24px}.card{padding:18px;border:1px solid #20283a;border-radius:16px;background:#0e1420}.value{font-size:26px;font-weight:800;margin-top:8px}
+    .pill,.tag{display:inline-block;padding:6px 10px;border:1px solid #2a3347;border-radius:999px;font-size:12px;color:#b8c3d9}.agent{padding:12px 0;border-bottom:1px solid #20283a}.agent:last-child{border-bottom:0}.ok{color:#62e6a5}
+    .console{margin-top:14px}.quick{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.quick button{border:1px solid #2a3347;background:#111827;color:#eef2ff;border-radius:10px;padding:9px 12px;cursor:pointer}.quick button:hover{background:#182238}
+    .pending{margin-top:18px}.pending-item{padding:12px;border:1px solid #2a3347;border-radius:10px;margin-top:8px}.pending-item button{margin-right:6px}
+    .chat{position:fixed;left:256px;right:336px;bottom:24px;display:flex;gap:10px}.chat input{flex:1;padding:16px 18px;border-radius:14px;border:1px solid #2a3347;background:#0b101a;color:#fff;outline:none}.chat button{border:0;border-radius:14px;padding:0 20px;background:#eef2ff;color:#0b101a;font-weight:700;cursor:pointer}
+    @media(max-width:1000px){.layout{grid-template-columns:1fr}.nav,.right{display:none}.chat{left:20px;right:20px}.grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <header class="top"><span class="dot"></span><span class="logo">ANSHUX OS</span><span class="muted">AI-FIRST CONTROL PLANE</span></header>
+  <div class="layout">
+    <aside><nav class="nav"><button class="active">⌂ Home</button><button onclick="document.getElementById('agents').scrollIntoView()">◈ Agents</button><button onclick="document.getElementById('console').scrollIntoView()">▣ Console</button><button onclick="loadMemory()">⌁ Memory</button><button onclick="loadActions()">⚙ Actions</button></nav></aside>
+    <main>
+      <section class="hero"><span class="pill" id="version">BOOTING</span><h1>Good evening, AnshuX.</h1><p class="muted">Your local AI control plane is running on this computer.</p></section>
+      <section class="grid"><div class="card"><div class="muted">System</div><div class="value" id="system">Checking…</div></div><div class="card"><div class="muted">Agents</div><div class="value" id="agentCount">—</div></div><div class="card"><div class="muted">Pending</div><div class="value" id="actions">—</div></div></section>
+      <section id="console" class="card console"><div class="muted">Mission console</div><p id="mission">AnshuX is ready.</p><div class="quick"><button onclick="run('screenshot',{},'Take a screenshot')">Screenshot</button><button onclick="run('volume_up',{steps:2},'Increase volume')">Volume +</button><button onclick="run('volume_down',{steps:2},'Decrease volume')">Volume −</button><button onclick="run('mute',{},'Mute audio')">Mute</button><button onclick="run('lock',{},'Lock workstation')">Lock</button><button onclick="run('open_app',{name:'vs code'},'Open VS Code')">Open VS Code</button></div></section>
+      <section id="pending" class="pending"></section>
+      <section id="memory" class="card console"><div class="muted">Recent activity</div><div id="memoryList">Loading…</div></section>
+    </main>
+    <aside id="agents" class="right"><h3>Agent network</h3><div id="agentList"></div><h3 style="margin-top:26px">Safety</h3><p class="muted">Actions are allowlisted. Every requested action gets an explicit approval step; shutdown and restart are never automatic.</p></aside>
+  </div>
+  <div class="chat"><input id="task" placeholder="Tell AnshuX what you want to work on…" onkeydown="if(event.key==='Enter')sendTask()"/><button onclick="sendTask()">Send</button></div>
+  <script>
+    const esc=s=>String(s).replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+    async function json(url,opts){const r=await fetch(url,opts);const d=await r.json();if(!r.ok)throw new Error(d.error||'Request failed');return d}
+    async function refresh(){try{const s=await json('/api/os/status');document.getElementById('version').textContent='ONLINE · '+s.version;document.getElementById('system').textContent='ONLINE';document.getElementById('agentCount').textContent=s.agents.length;document.getElementById('actions').textContent=s.pending_actions;document.getElementById('agentList').innerHTML=s.agents.map(a=>`<div class="agent"><strong>${esc(a.name)}</strong><div class="muted">${esc(a.role)}</div><div class="tag">${esc(a.capabilities.join(' · '))}</div></div>`).join('');loadActions();loadMemory()}catch(e){document.getElementById('version').textContent='OFFLINE';document.getElementById('system').textContent='OFFLINE';document.getElementById('mission').textContent=e.message}}
+    async function sendTask(){const input=document.getElementById('task');const task=input.value.trim();if(!task)return;try{const d=await json('/api/os/task',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({task,agent:'AnshuX'})});document.getElementById('mission').textContent='Accepted: '+task;input.value='';await loadMemory();return d}catch(e){document.getElementById('mission').textContent='Error: '+e.message}}
+    async function run(name,args,description){try{const d=await json('/api/os/actions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,description,args})});const approved=await json(`/api/os/actions/${d.action_id}/approve`,{method:'POST'});document.getElementById('mission').textContent=description+' → done';await refresh();return approved}catch(e){document.getElementById('mission').textContent='Error: '+e.message;}}
+    async function loadActions(){try{const d=await json('/api/os/actions/pending');document.getElementById('pending').innerHTML=d.actions.length?'<h3>Approval queue</h3>'+d.actions.map(a=>`<div class="pending-item"><strong>${esc(a.name)}</strong> <span class="tag">${esc(a.risk)}</span><div class="muted">${esc(a.description)}</div><button onclick="approve('${a.action_id}')">Approve</button><button onclick="deny('${a.action_id}')">Deny</button></div>`).join(''):'<h3>Approval queue</h3><div class="muted">Nothing waiting.</div>'}catch(e){}}
+    async function approve(id){try{await json(`/api/os/actions/${id}/approve`,{method:'POST'});await refresh()}catch(e){document.getElementById('mission').textContent='Approval error: '+e.message}}
+    async function deny(id){try{await json(`/api/os/actions/${id}/deny`,{method:'POST'});await refresh()}catch(e){}}
+    async function loadMemory(){try{const d=await json('/api/os/memory?limit=12');document.getElementById('memoryList').innerHTML=d.events.length?d.events.reverse().map(e=>`<div class="agent"><strong>${esc(e.kind)}</strong><div class="muted">${esc(JSON.stringify(e.payload))}</div></div>`).join(''):'<div class="muted">No activity yet.</div>'}catch(e){document.getElementById('memoryList').textContent=e.message}}
+    refresh();setInterval(refresh,5000);
+  </script>
+</body>
+</html>
