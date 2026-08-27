@@ -7,3 +7,4 @@ piper-tts
 flask
 pywin32
 Pillow
+pywebview
