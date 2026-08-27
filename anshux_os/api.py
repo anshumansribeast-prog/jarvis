@@ -1,8 +1,6 @@
-"""Local HTTP API and desktop entry point for the AnshuX OS."""
+"""Local HTTP API for the AnshuX OS desktop shell."""
 
 from __future__ import annotations
-
-from pathlib import Path
 
 from flask import Flask, jsonify, request, send_from_directory
 
@@ -10,8 +8,17 @@ from .kernel import AnshuXKernel
 from .permissions import Risk
 
 
-ROOT = Path(__file__).resolve().parent.parent
-DESKTOP = ROOT / "desktop"
+KNOWN_ACTIONS = {
+    "volume_up": Risk.WRITE,
+    "volume_down": Risk.WRITE,
+    "mute": Risk.WRITE,
+    "screenshot": Risk.WRITE,
+    "lock": Risk.WRITE,
+    "open_app": Risk.WRITE,
+    "close_app": Risk.WRITE,
+    "shutdown": Risk.DANGEROUS,
+    "restart": Risk.DANGEROUS,
+}
 
 
 def create_app(kernel: AnshuXKernel | None = None) -> Flask:
@@ -20,7 +27,11 @@ def create_app(kernel: AnshuXKernel | None = None) -> Flask:
 
     @app.get("/")
     def desktop():
-        return send_from_directory(DESKTOP, "index.html")
+        return send_from_directory(app.root_path + "/../desktop", "index.html")
+
+    @app.get("/api/health")
+    def health():
+        return jsonify({"ok": True, "service": "anshux-os", "version": core.VERSION})
 
     @app.get("/api/os/status")
     def os_status():
@@ -45,28 +56,25 @@ def create_app(kernel: AnshuXKernel | None = None) -> Flask:
         return jsonify({"ok": True})
 
     @app.get("/api/os/actions")
+    def action_catalog():
+        return jsonify({"actions": [{"name": name, "risk": risk.value} for name, risk in KNOWN_ACTIONS.items()]})
+
+    @app.get("/api/os/actions/pending")
     def pending_actions():
-        return jsonify({
-            "actions": [
-                {"action_id": key, "name": value.name, "risk": value.risk.value, "description": value.description, "args": value.args}
-                for key, value in core.permissions.pending().items()
-            ]
-        })
+        return jsonify({"actions": core.pending_actions()})
 
     @app.post("/api/os/actions")
     def request_action():
         body = request.get_json(silent=True) or {}
-        risk_name = str(body.get("risk", "write")).lower()
-        try:
-            risk = Risk(risk_name)
-        except ValueError:
-            return jsonify({"error": "risk must be read, write, or dangerous"}), 400
-        return jsonify(core.request_action(
-            str(body.get("name", "unknown")),
-            risk,
-            str(body.get("description", "")),
-            body.get("args") if isinstance(body.get("args"), dict) else {},
-        )), 202
+        name = str(body.get("name", "")).strip()
+        if name not in KNOWN_ACTIONS:
+            return jsonify({"error": "unsupported action", "supported": sorted(KNOWN_ACTIONS)}), 400
+        args = body.get("args") if isinstance(body.get("args"), dict) else {}
+        description = str(body.get("description", name))
+        requested_risk = body.get("risk")
+        if requested_risk is not None and str(requested_risk).lower() != KNOWN_ACTIONS[name].value:
+            return jsonify({"error": "risk does not match registered action"}), 400
+        return jsonify(core.request_action(name, KNOWN_ACTIONS[name], description, args)), 202
 
     @app.post("/api/os/actions/<action_id>/approve")
     def approve_action(action_id: str):
@@ -74,6 +82,26 @@ def create_app(kernel: AnshuXKernel | None = None) -> Flask:
             result = core.approve_action(action_id)
         except (ValueError, PermissionError) as exc:
             return jsonify({"error": str(exc)}), 400
-        return jsonify({"ok": True, "result": result})
+        except Exception as exc:
+            return jsonify({"error": "action failed", "detail": str(exc)}), 500
+        return jsonify({"ok": True, "action_id": action_id, "result": result})
+
+    @app.post("/api/os/actions/<action_id>/deny")
+    def deny_action(action_id: str):
+        core.deny_action(action_id)
+        return jsonify({"ok": True, "action_id": action_id, "status": "denied"})
+
+    @app.post("/api/os/task")
+    def task():
+        body = request.get_json(silent=True) or {}
+        text = body.get("task")
+        agent = str(body.get("agent", "AnshuX"))
+        if not isinstance(text, str) or not text.strip():
+            return jsonify({"error": "task must be a non-empty string"}), 400
+        try:
+            result = core.agents.route(agent, text.strip(), {"source": "desktop"})
+        except ValueError as exc:
+            return jsonify({"error": str(exc)}), 400
+        return jsonify(result), 202
 
     return app
